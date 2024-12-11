@@ -146,7 +146,7 @@ const ProfilePage = () => {
   if (!profile) return null;
 
   return (
-    <div className="h-[100vh-4rem] bg-neutral-50">
+    <div className="min-h-[calc(100vh-4rem)] bg-neutral-50">
       <div className="container mx-auto px-4 py-8">
         <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 rounded-3xl p-8 mb-6 overflow-hidden">
           <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>

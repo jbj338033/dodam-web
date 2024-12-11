@@ -117,7 +117,7 @@ const NightStudyPage = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] bg-neutral-50">
+    <div className="min-h-[calc(100vh-4rem)] bg-neutral-50">
       <main className="h-full container mx-auto px-4 py-8 pt-20">
         {/* Header Section */}
         <div className="max-w-5xl mx-auto mb-6">
