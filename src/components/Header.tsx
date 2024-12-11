@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/", label: "홈" },
   { path: "/schedule", label: "일정" },
   { path: "/night-study", label: "심자" },
+  { path: "/wakeup-song", label: "기상송" },
 ];
 
 const Header = () => {
