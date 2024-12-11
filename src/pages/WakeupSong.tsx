@@ -146,7 +146,7 @@ const WakeupSongPage = () => {
     mutationFn: async (url: string) => {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/wakeup-song`,
-        { url },
+        { videoUrl: url },
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
