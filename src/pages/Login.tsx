@@ -4,11 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 import { useTokenStore } from "../stores/token";
 
 interface LoginForm {
   id: string;
   pw: string;
+}
+
+interface ErrorResponse {
+  status: number;
+  message: string;
+  code: string;
 }
 
 const LoginPage = () => {
@@ -27,11 +34,7 @@ const LoginPage = () => {
     },
   });
 
-  const {
-    mutate: login,
-    isPending,
-    error,
-  } = useMutation({
+  const { mutate: login, isPending } = useMutation({
     mutationFn: async (credentials: LoginForm) => {
       const { data } = await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/login`,
@@ -43,7 +46,22 @@ const LoginPage = () => {
       if (response.status === 200) {
         setAccessToken(response.data.accessToken);
         setRefreshToken(response.data.refreshToken);
-        navigate("/dashboard");
+        toast.success("로그인되었습니다");
+        navigate("/");
+      }
+    },
+    onError: (error: unknown) => {
+      if (!axios.isAxiosError(error)) {
+        toast.error("로그인에 실패했습니다");
+        return;
+      }
+
+      const errorData: ErrorResponse = error.response?.data;
+
+      if (errorData?.code === "WRONG_PASSWORD") {
+        toast.error("비밀번호가 올바르지 않습니다");
+      } else {
+        toast.error(errorData?.message || "로그인에 실패했습니다");
       }
     },
   });
@@ -76,69 +94,89 @@ const LoginPage = () => {
       {/* Right Section - Login Form */}
       <div className="flex-1 flex items-center justify-center px-8 lg:px-16 py-12 bg-white">
         <div className="w-full max-w-[480px]">
-          <div className="mb-14">
-            <h1 className="text-3xl font-bold text-neutral-800">
+          <div className="mb-12">
+            <h1 className="text-[32px] font-bold text-neutral-800 tracking-tight">
               도담도담에 오신 것을
               <br />
               환영합니다
             </h1>
+            <p className="mt-3 text-neutral-500">
+              서비스 이용을 위해 로그인해주세요.
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <input
-                {...register("id", { required: "아이디를 입력해주세요" })}
-                type="text"
-                placeholder="아이디"
-                className="w-full h-14 px-5 text-base border-2 border-neutral-200 rounded-lg focus:border-blue-600 outline-none transition-colors"
-              />
-              {errors.id && (
-                <p className="mt-2 text-sm text-red-500">{errors.id.message}</p>
-              )}
-            </div>
-
-            <div>
-              <div className="relative">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-5">
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="text-sm font-medium text-neutral-700">
+                    아이디
+                  </label>
+                  {errors.id && (
+                    <span className="text-sm text-red-500">
+                      {errors.id.message}
+                    </span>
+                  )}
+                </div>
                 <input
-                  {...register("pw", { required: "비밀번호를 입력해주세요" })}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="비밀번호"
-                  className="w-full h-14 px-5 text-base border-2 border-neutral-200 rounded-lg focus:border-blue-600 outline-none transition-colors"
+                  {...register("id", { required: "아이디를 입력해주세요" })}
+                  type="text"
+                  className="w-full h-12 px-4 border border-neutral-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-neutral-800 text-base"
+                  placeholder="아이디를 입력하세요"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                >
-                  {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                </button>
               </div>
-              {errors.pw && (
-                <p className="mt-2 text-sm text-red-500">{errors.pw.message}</p>
-              )}
+
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="text-sm font-medium text-neutral-700">
+                    비밀번호
+                  </label>
+                  {errors.pw && (
+                    <span className="text-sm text-red-500">
+                      {errors.pw.message}
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    {...register("pw", { required: "비밀번호를 입력해주세요" })}
+                    type={showPassword ? "text" : "password"}
+                    className="w-full h-12 px-4 border border-neutral-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-neutral-800 text-base"
+                    placeholder="비밀번호를 입력하세요"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-neutral-600"
+                  >
+                    {showPassword ? (
+                      <FiEyeOff size={18} />
+                    ) : (
+                      <FiEye size={18} />
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center">
               <input
                 type="checkbox"
                 id="remember"
-                className="w-5 h-5 rounded border-2 border-neutral-200 text-blue-600 focus:ring-blue-600"
+                className="w-4 h-4 rounded border-neutral-300 text-blue-500 focus:ring-blue-500"
               />
-              <label htmlFor="remember" className="ml-2 text-neutral-600">
-                로그인 유지
+              <label
+                htmlFor="remember"
+                className="ml-2 text-sm text-neutral-600"
+              >
+                로그인 상태 유지
               </label>
             </div>
-
-            {error && (
-              <div className="text-sm text-red-500 py-2">
-                로그인에 실패했습니다. 다시 시도해주세요.
-              </div>
-            )}
 
             <button
               type="submit"
               disabled={isPending}
-              className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-base font-semibold transition-colors disabled:opacity-70 disabled:cursor-not-allowed mt-2"
             >
               {isPending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
@@ -147,18 +185,49 @@ const LoginPage = () => {
               )}
             </button>
 
-            <div className="text-center">
-              <span className="text-neutral-500">아직 계정이 없으신가요? </span>
+            <div className="flex items-center gap-6 justify-center text-sm pt-2">
               <a
                 href="/register"
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="text-neutral-600 hover:text-neutral-800"
               >
                 회원가입
+              </a>
+              <a
+                href="/forgot-password"
+                className="text-neutral-600 hover:text-neutral-800"
+              >
+                비밀번호 찾기
               </a>
             </div>
           </form>
         </div>
       </div>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#ffffff",
+            color: "#333333",
+            border: "1px solid #e2e8f0",
+            padding: "12px 16px",
+            fontSize: "14px",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          success: {
+            iconTheme: {
+              primary: "#4F46E5",
+              secondary: "#ffffff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#EF4444",
+              secondary: "#ffffff",
+            },
+          },
+        }}
+      />
     </div>
   );
 };
