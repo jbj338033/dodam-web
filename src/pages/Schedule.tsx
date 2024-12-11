@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import "dayjs/locale/ko";
 import { useTokenStore } from "../stores/token";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 dayjs.extend(isBetween);
 
@@ -95,7 +96,7 @@ const SchedulePage = () => {
               onClick={() => setCurrentDate(currentDate.subtract(1, "month"))}
               className="p-2 rounded-lg hover:bg-neutral-100 text-neutral-600"
             >
-              이전 달
+              <FiChevronLeft size={18} />
             </button>
             <button
               onClick={() => setCurrentDate(dayjs())}
@@ -107,7 +108,7 @@ const SchedulePage = () => {
               onClick={() => setCurrentDate(currentDate.add(1, "month"))}
               className="p-2 rounded-lg hover:bg-neutral-100 text-neutral-600"
             >
-              다음 달
+              <FiChevronRight size={18} />
             </button>
           </div>
         </div>
