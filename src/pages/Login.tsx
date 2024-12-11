@@ -187,7 +187,7 @@ const LoginPage = () => {
 
             <div className="flex items-center gap-6 justify-center text-sm pt-2">
               <a
-                href="/register"
+                href="/signup"
                 className="text-neutral-600 hover:text-neutral-800"
               >
                 회원가입
