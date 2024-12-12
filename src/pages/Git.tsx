@@ -145,7 +145,7 @@ const GitPage = () => {
         `${import.meta.env.VITE_GIT_URL}/github-user/total`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
-        },
+        }
       );
       return data;
     },
@@ -158,7 +158,7 @@ const GitPage = () => {
         `${import.meta.env.VITE_GIT_URL}/github-repository`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
-        },
+        }
       );
       return data;
     },
@@ -171,7 +171,7 @@ const GitPage = () => {
         `${import.meta.env.VITE_GIT_URL}/github-user/pull-request`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
-        },
+        }
       );
       return data;
     },
@@ -184,7 +184,7 @@ const GitPage = () => {
         `${import.meta.env.VITE_GIT_URL}/github-week/top`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
-        },
+        }
       );
       return data;
     },
@@ -198,7 +198,7 @@ const GitPage = () => {
         {
           params: { page, limit: 10 },
           headers: { Authorization: `Bearer ${accessToken}` },
-        },
+        }
       );
       return data;
     },
@@ -216,17 +216,9 @@ const GitPage = () => {
     window.open(
       `${GITHUB_BASE_URL}${githubId}`,
       "_blank",
-      "noopener,noreferrer",
+      "noopener,noreferrer"
     );
   };
-
-  const getTotalStats = () => ({
-    commits: commits?.data[0]?.contributions ?? 0,
-    stars: repositories?.data[0]?.totalStars ?? 0,
-    prs: pullRequests?.data[0]?.pullRequest ?? 0,
-  });
-
-  const stats = getTotalStats();
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] bg-slate-50">
@@ -241,7 +233,7 @@ const GitPage = () => {
       {/* Sidebar */}
       <div
         className={`
-      relative md:block w-64 bg-white h-full border-r border-slate-200
+      fixed md:block w-64 bg-white h-[calc(100vh-64px)] border-r border-slate-200
       ${isMobileMenuOpen ? "fixed inset-y-0 left-0 z-40" : "hidden md:block"}
     `}
       >
@@ -268,27 +260,11 @@ const GitPage = () => {
               </button>
             ))}
           </div>
-
-          {/* Stats */}
-          <div className="mt-auto pt-6 space-y-4">
-            <div className="px-4 py-3 bg-slate-50 rounded-xl">
-              <div className="text-sm text-slate-600">전체 커밋</div>
-              <div className="text-lg font-bold text-blue-600">
-                {stats.commits.toLocaleString()}개
-              </div>
-            </div>
-            <div className="px-4 py-3 bg-slate-50 rounded-xl">
-              <div className="text-sm text-slate-600">전체 PR</div>
-              <div className="text-lg font-bold text-violet-600">
-                {stats.prs.toLocaleString()}개
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div ref={contentRef} className="flex-1 min-w-0 overflow-x-hidden">
+      <div ref={contentRef} className="flex-1 min-w-0 overflow-x-hidden pl-64">
         {/* Mobile Tabs */}
         <div className="md:hidden flex items-center gap-2 p-4 bg-white border-b overflow-x-auto">
           {TABS.map((tab) => (
