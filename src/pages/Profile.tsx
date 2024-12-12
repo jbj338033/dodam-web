@@ -62,7 +62,7 @@ const ProfilePage = () => {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
       return data.data;
     },
@@ -78,7 +78,7 @@ const ProfilePage = () => {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
     },
     onSuccess: () => {
@@ -104,7 +104,7 @@ const ProfilePage = () => {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
       return data.data;
     },
@@ -351,7 +351,7 @@ const ProfilePage = () => {
                             <option key={num} value={num}>
                               {num}번
                             </option>
-                          )
+                          ),
                         )}
                       </select>
                     ) : (

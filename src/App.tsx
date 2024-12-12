@@ -9,6 +9,8 @@ import ProfilePage from "./pages/Profile";
 import NightStudyPage from "./pages/NightStudy";
 import { useTokenStore } from "./stores/token";
 import WakeupSongPage from "./pages/WakeupSong";
+import AuthServicePage from "./pages/Auth";
+import GitPage from "./pages/Git";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,8 @@ function App() {
             <Route path="profile" element={<ProfilePage />} />
             <Route path="night-study" element={<NightStudyPage />} />
             <Route path="wakeup-song" element={<WakeupSongPage />} />
+            <Route path="auth" element={<AuthServicePage />} />
+            <Route path="git" element={<GitPage />} />
           </Route>
 
           <Route path="/login" element={<Login />} />

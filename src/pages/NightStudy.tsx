@@ -79,7 +79,7 @@ const NightStudyPage = () => {
         `${import.meta.env.VITE_API_URL}/night-study/my`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
-        }
+        },
       );
       return data.data;
     },

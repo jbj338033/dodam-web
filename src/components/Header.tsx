@@ -25,6 +25,8 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/schedule", label: "일정" },
   { path: "/night-study", label: "심자" },
   { path: "/wakeup-song", label: "기상송" },
+  { path: "/auth", label: "인증" },
+  { path: "/git", label: "Git" },
 ];
 
 const Header = () => {
@@ -40,7 +42,7 @@ const Header = () => {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
       return data.data;
     },

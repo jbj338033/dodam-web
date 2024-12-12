@@ -20,6 +20,6 @@ export const useTokenStore = create(
     }),
     {
       name: "token-storage",
-    }
-  )
+    },
+  ),
 );

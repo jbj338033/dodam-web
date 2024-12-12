@@ -44,7 +44,7 @@ const SignUpPage = () => {
     mutationFn: async (data: SignUpForm) => {
       const { data: response } = await axios.post(
         `${import.meta.env.VITE_API_URL}/member/join-student`,
-        data
+        data,
       );
       return response;
     },

@@ -40,7 +40,7 @@ const SchedulePage = () => {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
       return data.data;
     },
@@ -78,8 +78,8 @@ const SchedulePage = () => {
         dayjs(schedule.date[0]),
         dayjs(schedule.date[1]),
         "day",
-        "[]"
-      )
+        "[]",
+      ),
     );
   };
 
@@ -170,20 +170,20 @@ const SchedulePage = () => {
                       isToday
                         ? "bg-blue-500 text-white"
                         : isCurrentMonth
-                        ? `${
-                            isSunday
-                              ? "text-red-500"
-                              : isSaturday
-                              ? "text-blue-500"
-                              : "text-neutral-900"
-                          }`
-                        : `${
-                            isSunday
-                              ? "text-red-300"
-                              : isSaturday
-                              ? "text-blue-300"
-                              : "text-neutral-400"
-                          }`
+                          ? `${
+                              isSunday
+                                ? "text-red-500"
+                                : isSaturday
+                                  ? "text-blue-500"
+                                  : "text-neutral-900"
+                            }`
+                          : `${
+                              isSunday
+                                ? "text-red-300"
+                                : isSaturday
+                                  ? "text-blue-300"
+                                  : "text-neutral-400"
+                            }`
                     }`}
                   >
                     {day.format("D")}
@@ -193,7 +193,7 @@ const SchedulePage = () => {
                       <div
                         key={schedule.id}
                         className={`text-xs px-2 py-1 rounded-md ${getGradeColor(
-                          schedule.targetGrades
+                          schedule.targetGrades,
                         )}`}
                       >
                         {schedule.name}
@@ -202,7 +202,7 @@ const SchedulePage = () => {
                   </div>
                 </div>
               );
-            })
+            }),
           )}
         </div>
       </div>
