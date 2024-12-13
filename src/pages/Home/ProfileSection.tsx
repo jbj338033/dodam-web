@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTokenStore } from "../../stores/token";
+import { FaUserCircle } from "react-icons/fa";
 import axios from "axios";
 import { useState } from "react";
 
@@ -58,27 +59,50 @@ const ProfileSection = () => {
     },
   });
 
-  const { data: pointData } = useQuery<ApiResponse<Point>>({
-    queryKey: ["points", pointType],
+  const { data: points } = useQuery<{
+    DORMITORY: ApiResponse<Point>;
+    SCHOOL: ApiResponse<Point>;
+  }>({
+    queryKey: ["points-all"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/point/score/my?type=${pointType}`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-      return data;
+      const [dormitoryData, schoolData] = await Promise.all([
+        axios.get(
+          `${import.meta.env.VITE_API_URL}/point/score/my?type=DORMITORY`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        ),
+        axios.get(
+          `${import.meta.env.VITE_API_URL}/point/score/my?type=SCHOOL`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        ),
+      ]);
+
+      return {
+        DORMITORY: dormitoryData.data,
+        SCHOOL: schoolData.data,
+      };
     },
   });
+
+  const currentPoints = points?.[pointType];
 
   return (
     <div className="bg-white border border-slate-200 p-6">
       <div className="flex items-center gap-4">
-        <img
-          src={memberData?.data?.profileImage}
-          alt="Profile"
-          className="w-16 h-16 rounded object-cover"
-        />
+        {memberData?.data?.profileImage ? (
+          <img
+            src={memberData.data.profileImage}
+            alt="Profile"
+            className="w-16 h-16 rounded object-cover"
+          />
+        ) : (
+          <div className="w-16 h-16 flex items-center justify-center text-slate-400">
+            <FaUserCircle size={64} />
+          </div>
+        )}
         <div>
           <h2 className="font-bold text-lg">{memberData?.data?.name}</h2>
           <p className="text-slate-500 text-sm">
@@ -118,12 +142,12 @@ const ProfileSection = () => {
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-slate-600">상점</span>
-          <span className="font-medium">{pointData?.data?.bonus}점</span>
+          <span className="font-medium">{currentPoints?.data.bonus}점</span>
         </div>
         <div className="flex items-center justify-between text-sm mt-2">
           <span className="text-slate-600">벌점</span>
           <span className="font-medium text-red-500">
-            {pointData?.data?.minus}점
+            {currentPoints?.data.minus}점
           </span>
         </div>
       </div>
