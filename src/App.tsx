@@ -11,6 +11,7 @@ import { useTokenStore } from "./stores/token";
 import WakeupSongPage from "./pages/WakeupSong";
 import AuthServicePage from "./pages/Auth";
 import GitPage from "./pages/Git";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,10 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
         </Routes>
       </BrowserRouter>
+
+      {import.meta.env.MODE === "development" && (
+        <ReactQueryDevtools initialIsOpen={false} />
+      )}
     </QueryClientProvider>
   );
 }
