@@ -73,7 +73,6 @@ const CalendarSection = () => {
         const weekStart = week[0];
         const weekEnd = week[6];
 
-        // 이번 주에 포함되는지 확인
         if (!startDate.isAfter(weekEnd) && !endDate.isBefore(weekStart)) {
           const weekStartPos = Math.max(0, startDate.diff(weekStart, "day"));
           const weekEndPos = Math.min(6, endDate.diff(weekStart, "day"));
@@ -125,7 +124,6 @@ const CalendarSection = () => {
       </div>
 
       <div className="border border-slate-200 rounded overflow-hidden">
-        {/* Weekday Headers */}
         <div className="grid grid-cols-7 border-b border-slate-200">
           {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
             <div
@@ -137,11 +135,9 @@ const CalendarSection = () => {
           ))}
         </div>
 
-        {/* Calendar Weeks */}
         <div className="divide-y divide-slate-200">
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="relative">
-              {/* Schedule Bars */}
               <div className="absolute top-8 left-0 right-0 z-10">
                 {processSchedules(week).map((schedule, idx) => {
                   const { bg, text } = getGradeColor(schedule.targetGrades);
@@ -166,7 +162,6 @@ const CalendarSection = () => {
                 })}
               </div>
 
-              {/* Calendar Days Grid */}
               <div className="grid grid-cols-7 divide-x divide-slate-200">
                 {week.map((day) => {
                   const isToday = day.isSame(dayjs(), "day");
