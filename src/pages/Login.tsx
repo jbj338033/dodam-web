@@ -38,7 +38,7 @@ const LoginPage = () => {
     mutationFn: async (credentials: LoginForm) => {
       const { data } = await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/login`,
-        credentials,
+        credentials
       );
       return data;
     },
@@ -72,7 +72,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen w-full flex">
-      {/* Left Section - Image */}
       <div className="hidden lg:block w-[45%] relative overflow-hidden">
         <div className="absolute inset-0 bg-blue-500/10" />
         <img
@@ -91,7 +90,6 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Right Section - Login Form */}
       <div className="flex-1 flex items-center justify-center px-8 lg:px-16 py-12 bg-white">
         <div className="w-full max-w-[480px]">
           <div className="mb-12">
