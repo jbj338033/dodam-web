@@ -3,38 +3,25 @@ import ServiceDetailModal from "./ServiceDetailModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FiX } from "react-icons/fi";
 import { Client, ClientDetail } from "./types";
-import { useTokenStore } from "../../stores/token";
 import { ApiResponse } from "../../types/api";
 import toast from "react-hot-toast";
-import axios from "axios";
+import { dauthAxios } from "../../libs/axios";
 
 const MyServicesSection = () => {
-  const { accessToken } = useTokenStore();
   const queryClient = useQueryClient();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const { data: myServices } = useQuery<ApiResponse<Client[]>>({
     queryKey: ["my-services"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_AUTH_URL}/client/id`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dauthAxios.get(`client/id`);
       return data;
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async (service: ClientDetail) => {
-      await axios.put(
-        `${import.meta.env.VITE_AUTH_URL}/client/${service.clientId}`,
-        service,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      await dauthAxios.put(`client/${service.clientId}`, service);
     },
     onSuccess: () => {
       toast.success("서비스가 수정되었습니다");
@@ -48,12 +35,7 @@ const MyServicesSection = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (clientId: string) => {
-      await axios.delete(
-        `${import.meta.env.VITE_AUTH_URL}/client/${clientId}`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      await dauthAxios.delete(`client/${clientId}`);
     },
     onSuccess: () => {
       toast.success("서비스가 삭제되었습니다");

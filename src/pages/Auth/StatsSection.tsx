@@ -1,20 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
 import { Stats, ApiResponse, Client } from "./types";
-import axios from "axios";
+import { dauthAxios } from "../../libs/axios";
 
 const StatsSection = () => {
-  const { accessToken } = useTokenStore();
-
   const { data: randomClients } = useQuery<ApiResponse<Client[]>>({
     queryKey: ["random-clients"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_AUTH_URL}/client/random`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dauthAxios.get(`client/random`);
       return data;
     },
     staleTime: 30 * 1000,
@@ -23,12 +15,7 @@ const StatsSection = () => {
   const { data: frontendStats } = useQuery<ApiResponse<Stats>>({
     queryKey: ["frontend-stats"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_AUTH_URL}/front-end`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dauthAxios.get(`front-end`);
       return data;
     },
     staleTime: 5 * 60 * 1000,
@@ -37,12 +24,7 @@ const StatsSection = () => {
   const { data: backendStats } = useQuery<ApiResponse<Stats>>({
     queryKey: ["backend-stats"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_AUTH_URL}/back-end`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dauthAxios.get(`back-end`);
       return data;
     },
     staleTime: 5 * 60 * 1000,

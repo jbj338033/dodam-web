@@ -1,17 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FiX } from "react-icons/fi";
 import { RegisterData } from "./types";
-import { useTokenStore } from "../../stores/token";
 import toast from "react-hot-toast";
 import { useState } from "react";
-import axios from "axios";
+import { dauthAxios } from "../../libs/axios";
 
 interface Props {
   onClose: () => void;
 }
 
 const RegistrationModal = ({ onClose }: Props) => {
-  const { accessToken } = useTokenStore();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<RegisterData>({
     clientName: "",
@@ -23,13 +21,7 @@ const RegistrationModal = ({ onClose }: Props) => {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
-      await axios.post(
-        `${import.meta.env.VITE_AUTH_URL}/client/register`,
-        data,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      await dauthAxios.post(`client/register`, data);
     },
     onSuccess: () => {
       toast.success("서비스가 등록되었습니다");

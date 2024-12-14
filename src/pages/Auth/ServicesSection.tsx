@@ -1,21 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
 import { ApiResponse } from "../../types/api";
 import { Client } from "./types";
-import axios from "axios";
+import { dauthAxios } from "../../libs/axios";
 
 const ServicesSection = () => {
-  const { accessToken } = useTokenStore();
-
   const { data: clients } = useQuery<ApiResponse<Client[]>>({
     queryKey: ["clients"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_AUTH_URL}/client`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dauthAxios.get(`client`);
       return data;
     },
     staleTime: 30 * 1000,

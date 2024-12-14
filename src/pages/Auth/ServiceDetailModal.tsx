@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { FiX, FiEye, FiEyeOff, FiCopy } from "react-icons/fi";
 import { ClientDetail } from "./types";
 import toast from "react-hot-toast";
-import { useTokenStore } from "../../stores/token";
 import { useQuery } from "@tanstack/react-query";
 import { ApiResponse } from "../../types/api";
-import axios from "axios";
+import { dauthAxios } from "../../libs/axios";
 
 interface ServiceDetailProps {
   clientId: string;
@@ -18,7 +17,6 @@ const ServiceDetailModal = ({
   onClose,
   onUpdate,
 }: ServiceDetailProps) => {
-  const { accessToken } = useTokenStore();
   const [isEditing, setIsEditing] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
   const [formData, setFormData] = useState<Partial<ClientDetail>>({});
@@ -27,11 +25,8 @@ const ServiceDetailModal = ({
     {
       queryKey: ["client-detail", clientId],
       queryFn: async () => {
-        const { data } = await axios.get<ApiResponse<ClientDetail>>(
-          `${import.meta.env.VITE_AUTH_URL}/client/${clientId}`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
+        const { data } = await dauthAxios.get<ApiResponse<ClientDetail>>(
+          `client/${clientId}`
         );
         return data;
       },
