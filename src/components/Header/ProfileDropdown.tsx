@@ -1,41 +1,33 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
-import { FiUser, FiLogOut, FiChevronDown } from "react-icons/fi";
-import { useTokenStore } from "../../stores/token";
+import { FiUser, FiLogOut } from "react-icons/fi";
 import { UserProfile } from "./types";
-import axios from "axios";
 
-const ProfileDropdown = () => {
+interface Props {
+  profile: UserProfile | undefined;
+  onLogout: () => void;
+}
+
+const ProfileDropdown = ({ profile, onLogout }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { clearTokens, accessToken } = useTokenStore();
+  const ref = useRef<HTMLDivElement>(null);
 
-  const { data: profile } = useQuery({
-    queryKey: ["profile"],
-    queryFn: async () => {
-      const { data } = await axios.get<{ data: UserProfile }>(
-        `${import.meta.env.VITE_API_URL}/member/my`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      return data.data;
-    },
-    enabled: !!accessToken,
-  });
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
 
-  const handleLogout = () => {
-    clearTokens();
-    window.location.href = "/login";
-  };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 pl-2 pr-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+        className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-50 transition-colors"
       >
         {profile?.profileImage ? (
           <img
@@ -48,41 +40,38 @@ const ProfileDropdown = () => {
             <FiUser className="w-4 h-4 text-slate-400" />
           </div>
         )}
-        <span className="text-slate-700">{profile?.name}</span>
-        <FiChevronDown
-          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
+        <span className="hidden md:block">{profile?.name}</span>
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-2">
-          <div className="px-4 py-2 border-b border-slate-200">
-            <p className="text-sm font-medium text-slate-900">
-              {profile?.name}
-            </p>
-            <p className="text-xs text-slate-500">
-              {profile?.student.grade}학년 {profile?.student.room}반{" "}
-              {profile?.student.number}번
-            </p>
-          </div>
-          <NavLink
-            to="/profile"
-            className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-            onClick={() => setIsOpen(false)}
-          >
-            <FiUser className="w-4 h-4" />내 프로필
-          </NavLink>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-slate-50"
-          >
-            <FiLogOut className="w-4 h-4" />
-            로그아웃
-          </button>
+      <div
+        className={`absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 transition-all duration-200 origin-top-right ${
+          isOpen
+            ? "transform opacity-100 scale-100"
+            : "transform opacity-0 scale-95 pointer-events-none"
+        }`}
+      >
+        <div className="px-4 py-3 border-b border-slate-200">
+          <p className="font-medium text-slate-900">{profile?.name}</p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {profile?.student.grade}학년 {profile?.student.room}반{" "}
+            {profile?.student.number}번
+          </p>
         </div>
-      )}
+        <NavLink
+          to="/profile"
+          onClick={() => setIsOpen(false)}
+          className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+        >
+          <FiUser className="w-4 h-4" />내 프로필
+        </NavLink>
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+        >
+          <FiLogOut className="w-4 h-4" />
+          로그아웃
+        </button>
+      </div>
     </div>
   );
 };
