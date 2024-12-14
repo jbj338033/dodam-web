@@ -9,7 +9,6 @@ const NightStudyPage = () => {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50">
-      {/* Header */}
       <div className="border-b border-slate-200 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto py-8">
@@ -31,7 +30,6 @@ const NightStudyPage = () => {
         </div>
       </div>
 
-      {/* Content */}
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <MyApplicationsSection />
