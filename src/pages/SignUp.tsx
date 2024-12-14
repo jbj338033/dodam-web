@@ -44,7 +44,7 @@ const SignUpPage = () => {
     mutationFn: async (data: SignUpForm) => {
       const { data: response } = await axios.post(
         `${import.meta.env.VITE_API_URL}/member/join-student`,
-        data,
+        data
       );
       return response;
     },
@@ -67,7 +67,6 @@ const SignUpPage = () => {
 
   return (
     <div className="min-h-screen w-full flex">
-      {/* Left Section - Image */}
       <div className="hidden lg:block w-[45%] relative overflow-hidden">
         <div className="absolute inset-0 bg-blue-500/10" />
         <img
@@ -86,7 +85,6 @@ const SignUpPage = () => {
         </div>
       </div>
 
-      {/* Right Section - Signup Form */}
       <div className="flex-1 flex items-center justify-center px-8 lg:px-16 py-12 bg-white">
         <div className="w-full max-w-[480px]">
           <div className="mb-12">
@@ -100,7 +98,6 @@ const SignUpPage = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-5">
-              {/* Account Information */}
               <div className="space-y-5">
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
@@ -163,7 +160,6 @@ const SignUpPage = () => {
                 </div>
               </div>
 
-              {/* Personal Information */}
               <div className="pt-4 space-y-5">
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
@@ -235,7 +231,6 @@ const SignUpPage = () => {
                 </div>
               </div>
 
-              {/* Student Information */}
               <div className="pt-4 grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1.5">
