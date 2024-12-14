@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { NightStudyRequest, PLACES } from "./types";
-import { useTokenStore } from "../../stores/token";
 import { FiX } from "react-icons/fi";
 import dayjs from "dayjs";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { dodamAxios } from "../../libs/axios";
 
 interface Props {
   isOpen: boolean;
@@ -13,7 +13,6 @@ interface Props {
 }
 
 const ApplicationFormSection = ({ isOpen, onClose }: Props) => {
-  const { accessToken } = useTokenStore();
   const queryClient = useQueryClient();
   const [form, setForm] = useState<NightStudyRequest>({
     content: "",
@@ -26,9 +25,7 @@ const ApplicationFormSection = ({ isOpen, onClose }: Props) => {
 
   const applyMutation = useMutation({
     mutationFn: async (data: NightStudyRequest) => {
-      await axios.post(`${import.meta.env.VITE_API_URL}/night-study`, data, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      await dodamAxios.post(`night-study`, data, {});
     },
     onSuccess: () => {
       toast.success("심야자습 신청이 완료되었습니다");

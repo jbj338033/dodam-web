@@ -1,23 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import axios from "axios";
-import { useTokenStore } from "../../stores/token";
 import toast from "react-hot-toast";
+import { dodamAxios } from "../../libs/axios";
 
 export const SubmitSection = () => {
-  const { accessToken } = useTokenStore();
   const queryClient = useQueryClient();
   const [url, setUrl] = useState("");
 
   const urlMutation = useMutation({
     mutationFn: async (url: string) => {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/wakeup-song`,
-        { videoUrl: url },
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      await dodamAxios.post(`wakeup-song`, {
+        videoUrl: url,
+      });
     },
     onSuccess: () => {
       toast.success("기상송이 신청되었습니다");

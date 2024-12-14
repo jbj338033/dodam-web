@@ -42,10 +42,7 @@ const SignUpPage = () => {
 
   const { mutate: signup, isPending } = useMutation({
     mutationFn: async (data: SignUpForm) => {
-      const { data: response } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/member/join-student`,
-        data
-      );
+      const { data: response } = await axios.post(`member/join-student`, data);
       return response;
     },
     onSuccess: () => {

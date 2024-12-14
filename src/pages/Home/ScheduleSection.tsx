@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import axios from "axios";
 import { FiCalendar, FiMapPin } from "react-icons/fi";
 import dayjs from "dayjs";
+import { dodamAxios } from "../../libs/axios";
 
 type Schedule = {
   id: number;
@@ -18,17 +17,10 @@ type ApiResponse<T> = {
 };
 
 const ScheduleSection = () => {
-  const { accessToken } = useTokenStore();
-
   const { data: scheduleData } = useQuery<ApiResponse<Schedule[]>>({
     queryKey: ["schedule"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/schedule/today`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dodamAxios.get(`schedule/today`);
       return data;
     },
   });

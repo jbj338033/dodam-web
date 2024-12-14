@@ -1,22 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { FiCalendar, FiClock } from "react-icons/fi";
 import dayjs from "dayjs";
-import axios from "axios";
-import { useTokenStore } from "../../stores/token";
 import { WakeupSong, ApiResponse } from "./types";
+import { dodamAxios } from "../../libs/axios";
 
 export const PendingSection = () => {
-  const { accessToken } = useTokenStore();
-
   const { data: pendingSongs } = useQuery({
     queryKey: ["wakeup-songs", "pending"],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<WakeupSong[]>>(
-        `${import.meta.env.VITE_API_URL}/wakeup-song/pending`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } =
+        await dodamAxios.get<ApiResponse<WakeupSong[]>>(`wakeup-song/pending`);
       return data;
     },
   });

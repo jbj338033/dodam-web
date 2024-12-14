@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import axios from "axios";
-import { useTokenStore } from "../../stores/token";
 import { DATE_OPTIONS, AllowedSong } from "./types";
 import { useMemo, useState } from "react";
 import { ApiResponse } from "../../types/api";
+import { dodamAxios } from "../../libs/axios";
 
 export const TodaySection = () => {
-  const { accessToken } = useTokenStore();
   const [dateOffset, setDateOffset] = useState(0);
 
   const selectedDate = useMemo(
@@ -18,15 +16,14 @@ export const TodaySection = () => {
   const { data: allowedSongs } = useQuery({
     queryKey: ["wakeup-songs", "allowed", selectedDate.format("YYYY-MM-DD")],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<AllowedSong[]>>(
-        `${import.meta.env.VITE_API_URL}/wakeup-song/allowed`,
+      const { data } = await dodamAxios.get<ApiResponse<AllowedSong[]>>(
+        `wakeup-song/allowed`,
         {
           params: {
             year: selectedDate.year(),
             month: selectedDate.month() + 1,
             day: selectedDate.date(),
           },
-          headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
       return data;

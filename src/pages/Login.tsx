@@ -36,10 +36,7 @@ const LoginPage = () => {
 
   const { mutate: login, isPending } = useMutation({
     mutationFn: async (credentials: LoginForm) => {
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/login`,
-        credentials
-      );
+      const { data } = await axios.post(`auth/login`, credentials);
       return data;
     },
     onSuccess: (response) => {

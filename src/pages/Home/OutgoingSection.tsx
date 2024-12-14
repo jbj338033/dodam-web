@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import axios from "axios";
 import { FiClock } from "react-icons/fi";
 import dayjs from "dayjs";
+import { dodamAxios } from "../../libs/axios";
 
 type Student = {
   id: number;
@@ -31,17 +30,10 @@ type ApiResponse<T> = {
 };
 
 const OutgoingSection = () => {
-  const { accessToken } = useTokenStore();
-
   const { data: outgoingData } = useQuery<ApiResponse<OutGoing[]>>({
     queryKey: ["outgoing"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/out-going/my`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dodamAxios.get(`out-going/my`);
       return data;
     },
   });

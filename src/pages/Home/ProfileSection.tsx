@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
 import { FaUserCircle } from "react-icons/fa";
-import axios from "axios";
 import { useState } from "react";
+import { dodamAxios } from "../../libs/axios";
 
 type Student = {
   id: number;
@@ -41,7 +40,6 @@ type ApiResponse<T> = {
 };
 
 const ProfileSection = () => {
-  const { accessToken } = useTokenStore();
   const [pointType, setPointType] = useState<"DORMITORY" | "SCHOOL">(
     "DORMITORY"
   );
@@ -49,16 +47,10 @@ const ProfileSection = () => {
   const { data: memberData } = useQuery<ApiResponse<Member>>({
     queryKey: ["member-info"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/member/my`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dodamAxios.get(`member/my`);
       return data;
     },
   });
-
   const { data: points } = useQuery<{
     DORMITORY: ApiResponse<Point>;
     SCHOOL: ApiResponse<Point>;
@@ -66,18 +58,8 @@ const ProfileSection = () => {
     queryKey: ["points-all"],
     queryFn: async () => {
       const [dormitoryData, schoolData] = await Promise.all([
-        axios.get(
-          `${import.meta.env.VITE_API_URL}/point/score/my?type=DORMITORY`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
-        ),
-        axios.get(
-          `${import.meta.env.VITE_API_URL}/point/score/my?type=SCHOOL`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
-        ),
+        dodamAxios.get(`point/score/my?type=DORMITORY`),
+        dodamAxios.get(`point/score/my?type=SCHOOL`),
       ]);
 
       return {

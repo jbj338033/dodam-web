@@ -1,10 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import axios from "axios";
 import { FiMapPin, FiClock } from "react-icons/fi";
 import dayjs from "dayjs";
 import { ApiResponse } from "../../types/api";
 import toast from "react-hot-toast";
+import { dodamAxios } from "../../libs/axios";
 
 type Bus = {
   id: number;
@@ -25,15 +24,12 @@ const formatTimeRequired = (timeStr: string) => {
 };
 
 const BusSection = () => {
-  const { accessToken } = useTokenStore();
   const queryClient = useQueryClient();
 
   const { data: busData } = useQuery<ApiResponse<Bus[]>>({
     queryKey: ["bus"],
     queryFn: async () => {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/bus`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const { data } = await dodamAxios.get(`bus`, {});
       return data;
     },
   });
@@ -41,25 +37,14 @@ const BusSection = () => {
   const { data: myBusData } = useQuery<ApiResponse<Bus>>({
     queryKey: ["bus", "apply"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/bus/apply`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dodamAxios.get(`bus/apply`);
       return data;
     },
   });
 
   const applyMutation = useMutation({
     mutationFn: async (busId: number) => {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/bus/apply/${busId}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      await dodamAxios.post(`bus/apply/${busId}`, {});
     },
     onSuccess: () => {
       toast.success("버스 신청이 완료되었습니다");

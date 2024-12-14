@@ -1,36 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useTokenStore } from "../../stores/token";
 import { Chart, KeywordRequest } from "./types";
 import toast from "react-hot-toast";
 import { ApiResponse } from "../../types/api";
+import { dodamAxios } from "../../libs/axios";
 
 export const ChartSection = () => {
-  const { accessToken } = useTokenStore();
   const queryClient = useQueryClient();
 
   const { data: chart } = useQuery({
     queryKey: ["wakeup-songs", "chart"],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<Chart[]>>(
-        `${import.meta.env.VITE_API_URL}/wakeup-song/chart`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } =
+        await dodamAxios.get<ApiResponse<Chart[]>>(`wakeup-song/chart`);
       return data;
     },
   });
 
   const keywordMutation = useMutation({
     mutationFn: async (data: KeywordRequest) => {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/wakeup-song/keyword`,
-        data,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      await dodamAxios.post(`wakeup-song/keyword`, data);
     },
     onSuccess: () => {
       toast.success("기상송이 신청되었습니다");

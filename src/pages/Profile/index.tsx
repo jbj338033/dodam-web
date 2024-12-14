@@ -6,10 +6,10 @@ import { UserProfile, UpdateProfileDto } from "./types";
 import ProfileCard from "./ProfileCard";
 import ProfileForm from "./ProfileForm";
 import { Toaster } from "react-hot-toast";
-import axios from "axios";
 import toast from "react-hot-toast";
+import { dodamAxios } from "../../libs/axios";
 
-const ProfilePage = () => {
+const Profile = () => {
   const { accessToken } = useTokenStore();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
@@ -24,14 +24,7 @@ const ProfilePage = () => {
   const { data: profile } = useQuery<UserProfile>({
     queryKey: ["profile"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/member/my`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const { data } = await dodamAxios.get("/member/my");
       return data.data;
     },
     enabled: !!accessToken,
@@ -39,15 +32,7 @@ const ProfilePage = () => {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (updateData: UpdateProfileDto) => {
-      await axios.patch(
-        `${import.meta.env.VITE_API_URL}/member/info`,
-        updateData,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      await dodamAxios.patch("/member/info", updateData);
     },
     onSuccess: () => {
       toast.success("프로필이 수정되었습니다");
@@ -64,16 +49,11 @@ const ProfilePage = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/upload`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const { data } = await dodamAxios.post("/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return data.data;
     },
     onSuccess: (imageUrl) => {
@@ -166,4 +146,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default Profile;

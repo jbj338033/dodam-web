@@ -3,7 +3,7 @@ import { NightStudy, STATUS_MAP } from "./types";
 import { useTokenStore } from "../../stores/token";
 import { FiCalendar, FiMapPin } from "react-icons/fi";
 import dayjs from "dayjs";
-import axios from "axios";
+import { dodamAxios } from "../../libs/axios";
 
 interface NightStudyResponse {
   status: number;
@@ -17,12 +17,8 @@ const MyApplicationsSection = () => {
   const { data: myNightStudy } = useQuery<NightStudy[]>({
     queryKey: ["night-study"],
     queryFn: async () => {
-      const { data } = await axios.get<NightStudyResponse>(
-        `${import.meta.env.VITE_API_URL}/night-study/my`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } =
+        await dodamAxios.get<NightStudyResponse>(`night-study/my`);
       return data.data;
     },
     enabled: !!accessToken,

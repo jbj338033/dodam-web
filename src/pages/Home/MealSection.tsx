@@ -1,7 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import axios from "axios";
 import dayjs from "dayjs";
 import {
   FiCalendar,
@@ -11,6 +9,7 @@ import {
 } from "react-icons/fi";
 import { PiBowlFood, PiCoffee, PiHamburger } from "react-icons/pi";
 import { ApiResponse } from "../../types/api";
+import { dodamAxios } from "../../libs/axios";
 
 type MealType = "breakfast" | "lunch" | "dinner";
 
@@ -51,27 +50,19 @@ const MEAL_TYPES: { type: MealType; label: string; icon: JSX.Element }[] = [
 ];
 
 const MealSection = () => {
-  const { accessToken } = useTokenStore();
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const queryClient = useQueryClient();
 
-  const fetchMealData = useCallback(
-    async (date: dayjs.Dayjs) => {
-      const { data } = await axios.get<ApiResponse<Meal>>(
-        `${import.meta.env.VITE_API_URL}/meal`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          params: {
-            year: date.year(),
-            month: date.month() + 1,
-            day: date.date(),
-          },
-        }
-      );
-      return data;
-    },
-    [accessToken]
-  );
+  const fetchMealData = useCallback(async (date: dayjs.Dayjs) => {
+    const { data } = await dodamAxios.get<ApiResponse<Meal>>(`meal`, {
+      params: {
+        year: date.year(),
+        month: date.month() + 1,
+        day: date.date(),
+      },
+    });
+    return data;
+  }, []);
 
   const { data: currentMealData, isLoading } = useQuery({
     queryKey: ["meal", selectedDate.format("YYYY-MM-DD")],

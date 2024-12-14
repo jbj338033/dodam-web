@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import axios from "axios";
 import { FiMusic, FiExternalLink } from "react-icons/fi";
 import dayjs from "dayjs";
 import { ApiResponse } from "../../types/api";
+import { dodamAxios } from "../../libs/axios";
 
 type WakeupSong = {
   id: number;
@@ -17,23 +16,18 @@ type WakeupSong = {
 };
 
 const WakeupSongSection = () => {
-  const { accessToken } = useTokenStore();
   const today = dayjs();
 
   const { data: wakeupSongData } = useQuery<ApiResponse<WakeupSong[]>>({
     queryKey: ["wakeup-song", today.format("YYYY-MM-DD")],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/wakeup-song/allowed`,
-        {
-          params: {
-            year: today.year(),
-            month: today.month() + 1,
-            day: today.date(),
-          },
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dodamAxios.get(`wakeup-song/allowed`, {
+        params: {
+          year: today.year(),
+          month: today.month() + 1,
+          day: today.date(),
+        },
+      });
       return data;
     },
   });

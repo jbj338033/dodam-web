@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import axios from "axios";
 import { FiCalendar, FiExternalLink } from "react-icons/fi";
 import dayjs from "dayjs";
 import { ApiResponse } from "../../types/api";
+import { dodamAxios } from "../../libs/axios";
 
 type Conference = {
   title: string;
@@ -15,17 +14,10 @@ type Conference = {
 };
 
 const ConferenceSection = () => {
-  const { accessToken } = useTokenStore();
-
   const { data: conferenceData } = useQuery<ApiResponse<Conference[]>>({
     queryKey: ["conference"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/conference`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dodamAxios.get(`conference`);
       return data;
     },
   });

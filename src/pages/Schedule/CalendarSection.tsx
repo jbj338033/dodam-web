@@ -5,8 +5,8 @@ import { ScheduleResponse, GRADE_COLORS, Schedule } from "./types";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
-import axios from "axios";
 import GradeLegend from "./GradeLegend";
+import { dodamAxios } from "../../libs/axios";
 
 dayjs.extend(isBetween);
 
@@ -26,11 +26,10 @@ const CalendarSection = () => {
   const { data: scheduleData } = useQuery({
     queryKey: ["schedules", startAt, endAt],
     queryFn: async () => {
-      const { data } = await axios.get<ScheduleResponse>(
-        `${import.meta.env.VITE_API_URL}/schedule/search`,
+      const { data } = await dodamAxios.get<ScheduleResponse>(
+        `schedule/search`,
         {
           params: { startAt, endAt },
-          headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
       return data.data;

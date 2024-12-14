@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import axios from "axios";
 import dayjs from "dayjs";
 import { ApiResponse } from "../../types/api";
+import { dodamAxios } from "../../libs/axios";
 
 type Banner = {
   id: number;
@@ -14,17 +13,10 @@ type Banner = {
 };
 
 const BannerSection = () => {
-  const { accessToken } = useTokenStore();
-
   const { data: bannerData } = useQuery<ApiResponse<Banner[]>>({
     queryKey: ["banner"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/banner/active`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dodamAxios.get(`banner/active`);
       return data;
     },
   });
