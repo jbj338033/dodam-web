@@ -20,7 +20,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50">
-      {/* Header */}
       <div className="border-b border-slate-200 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto py-8">
@@ -39,10 +38,8 @@ const Auth = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Submit Section - Always visible */}
           <div className="bg-white border border-slate-200 p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -60,7 +57,6 @@ const Auth = () => {
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="flex items-center gap-2">
             {TABS.map((tab) => (
               <button
@@ -77,7 +73,6 @@ const Auth = () => {
             ))}
           </div>
 
-          {/* Tab Content */}
           {activeTab === "overview" && (
             <div className="bg-white border border-slate-200 p-4">
               <h2 className="font-bold mb-4">DAuth 사용 서비스</h2>
@@ -89,7 +84,6 @@ const Auth = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {isRegistering && (
         <RegistrationModal onClose={() => setIsRegistering(false)} />
       )}
