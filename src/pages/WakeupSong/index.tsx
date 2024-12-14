@@ -21,7 +21,6 @@ const WakeupSongPage = () => {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50">
-      {/* Header */}
       <div className="border-b border-slate-200 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto py-8">
@@ -40,15 +39,12 @@ const WakeupSongPage = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-7xl mx-auto">
-          {/* Submit Section - Always visible */}
           <div className="mb-6">
             <SubmitSection />
           </div>
 
-          {/* Tabs */}
           <div className="flex items-center gap-2 mb-4">
             {TABS.map((tab) => (
               <button
@@ -65,7 +61,6 @@ const WakeupSongPage = () => {
             ))}
           </div>
 
-          {/* Tab Content */}
           {activeTab === "today" && <TodaySection />}
           {activeTab === "pending" && <PendingSection />}
           {activeTab === "my" && <MySongSection />}
