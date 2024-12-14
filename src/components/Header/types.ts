@@ -20,4 +20,4 @@ export const NAV_ITEMS: NavItem[] = [
   { path: "/wakeup-song", label: "기상송" },
   { path: "/auth", label: "인증" },
   { path: "/git", label: "Git" },
-];
+] as const;
