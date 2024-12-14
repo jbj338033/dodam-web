@@ -1,7 +1,5 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import axios from "axios";
 import { FiMenu, FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import dayjs from "dayjs";
 import { Toaster } from "react-hot-toast";
@@ -18,11 +16,11 @@ import {
   Tab,
 } from "./types";
 import { GITHUB_BASE_URL, TABS } from "./constants";
+import { dgitAxios } from "../../libs/axios";
 
 dayjs.locale("ko");
 
 const GitPage = () => {
-  const { accessToken } = useTokenStore();
   const [activeTab, setActiveTab] = React.useState<Tab>("commit");
   const [page, setPage] = React.useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -30,12 +28,8 @@ const GitPage = () => {
   const { data: commits } = useQuery<ApiResponse<GitUser[]>, Error>({
     queryKey: ["git-users", "total"],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<GitUser[]>>(
-        `${import.meta.env.VITE_GIT_URL}/github-user/total`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } =
+        await dgitAxios.get<ApiResponse<GitUser[]>>(`github-user/total`);
       return data;
     },
   });
@@ -43,12 +37,8 @@ const GitPage = () => {
   const { data: weeklyCommits } = useQuery<ApiResponse<GitUser[]>, Error>({
     queryKey: ["git-week"],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<GitUser[]>>(
-        `${import.meta.env.VITE_GIT_URL}/github-week`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } =
+        await dgitAxios.get<ApiResponse<GitUser[]>>(`github-week`);
       return data;
     },
   });
@@ -56,12 +46,8 @@ const GitPage = () => {
   const { data: repositories } = useQuery<ApiResponse<Repository[]>, Error>({
     queryKey: ["git-repositories"],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<Repository[]>>(
-        `${import.meta.env.VITE_GIT_URL}/github-repository`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } =
+        await dgitAxios.get<ApiResponse<Repository[]>>(`github-repository`);
       return data;
     },
   });
@@ -69,11 +55,8 @@ const GitPage = () => {
   const { data: pullRequests } = useQuery<ApiResponse<GitUser[]>, Error>({
     queryKey: ["git-pull-requests"],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<GitUser[]>>(
-        `${import.meta.env.VITE_GIT_URL}/github-user/pull-request`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
+      const { data } = await dgitAxios.get<ApiResponse<GitUser[]>>(
+        `github-user/pull-request`
       );
       return data;
     },
@@ -82,12 +65,8 @@ const GitPage = () => {
   const { data: weeklyTop } = useQuery<ApiResponse<WeeklyTop[]>, Error>({
     queryKey: ["git-weekly-top"],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<WeeklyTop[]>>(
-        `${import.meta.env.VITE_GIT_URL}/github-week/top`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } =
+        await dgitAxios.get<ApiResponse<WeeklyTop[]>>(`github-week/top`);
       return data;
     },
   });
@@ -95,11 +74,10 @@ const GitPage = () => {
   const { data: weeklyRanks } = useQuery<ApiResponse<WeeklyRank[]>, Error>({
     queryKey: ["git-weekly-ranks", page],
     queryFn: async () => {
-      const { data } = await axios.get<ApiResponse<WeeklyRank[]>>(
-        `${import.meta.env.VITE_GIT_URL}/github-week/rank`,
+      const { data } = await dgitAxios.get<ApiResponse<WeeklyRank[]>>(
+        `github-week/rank`,
         {
           params: { page, limit: 10 },
-          headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
       return data;
