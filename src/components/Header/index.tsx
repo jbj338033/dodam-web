@@ -6,7 +6,7 @@ import { useTokenStore } from "../../stores/token";
 import DesktopNavigation from "./DesktopNavigation";
 import MobileNavigation from "./MobileNavigation";
 import ProfileDropdown from "./ProfileDropdown";
-import axios from "axios";
+import { dodamAxios } from "../../libs/axios";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,12 +15,7 @@ const Header = () => {
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/member/my`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const { data } = await dodamAxios.get(`member/my`);
       return data.data;
     },
     enabled: !!accessToken,
