@@ -26,10 +26,12 @@ const formatTimeRequired = (timeStr: string) => {
 const BusSection = () => {
   const queryClient = useQueryClient();
 
-  const { data: busData } = useQuery<ApiResponse<Bus[]>>({
+  const { data: busData, isLoading: isBusLoading } = useQuery<
+    ApiResponse<Bus[]>
+  >({
     queryKey: ["bus"],
     queryFn: async () => {
-      const { data } = await dodamAxios.get(`bus`, {});
+      const { data } = await dodamAxios.get(`bus`);
       return data;
     },
   });
@@ -44,7 +46,7 @@ const BusSection = () => {
 
   const applyMutation = useMutation({
     mutationFn: async (busId: number) => {
-      await dodamAxios.post(`bus/apply/${busId}`, {});
+      await dodamAxios.post(`bus/apply/${busId}`);
     },
     onSuccess: () => {
       toast.success("버스 신청이 완료되었습니다");
@@ -57,23 +59,68 @@ const BusSection = () => {
   });
 
   const handleApply = (bus: Bus) => {
-    if (myBusData?.data) {
-      if (myBusData.data.id === bus.id) return;
-      if (
-        window.confirm(
-          `현재 ${myBusData.data.busName}에서 ${bus.busName}으로 변경하시겠습니까?`
-        )
-      ) {
-        applyMutation.mutate(bus.id);
-      }
-    } else {
+    if (!myBusData?.data) {
+      applyMutation.mutate(bus.id);
+      return;
+    }
+
+    if (myBusData.data.id === bus.id) return;
+
+    if (
+      window.confirm(
+        `현재 ${myBusData.data.busName}에서 ${bus.busName}으로 변경하시겠습니까?`
+      )
+    ) {
       applyMutation.mutate(bus.id);
     }
   };
 
-  const isApplied = (busId: number) => {
-    return myBusData?.data?.id === busId;
+  const getButtonStyle = (bus: Bus) => {
+    const applied = myBusData?.data?.id === bus.id;
+    const isFull = bus.applyCount >= bus.peopleLimit;
+
+    if (applied) return "bg-blue-100 text-blue-700 cursor-default";
+    if (isFull) return "bg-slate-200 text-slate-500 cursor-not-allowed";
+    if (myBusData?.data)
+      return "bg-slate-200 text-slate-700 hover:bg-slate-300";
+    return "bg-blue-500 text-white hover:bg-blue-600";
   };
+
+  const getButtonText = (bus: Bus) => {
+    const applied = myBusData?.data?.id === bus.id;
+    const isFull = bus.applyCount >= bus.peopleLimit;
+
+    if (applied) return "신청됨";
+    if (isFull) return "만석";
+    if (myBusData?.data) return "변경";
+    return "신청";
+  };
+
+  if (isBusLoading) {
+    return (
+      <div className="bg-white border border-slate-200 p-4">
+        <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+          <FiMapPin className="text-blue-500" />
+          하교 버스
+        </h3>
+        <div className="text-slate-500 text-sm">버스 정보를 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (!busData?.data?.length) {
+    return (
+      <div className="bg-white border border-slate-200 p-4">
+        <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+          <FiMapPin className="text-blue-500" />
+          하교 버스
+        </h3>
+        <div className="text-slate-500 text-sm">
+          현재 운행 중인 버스가 없습니다.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border border-slate-200 p-4">
@@ -82,8 +129,8 @@ const BusSection = () => {
         하교 버스
       </h3>
       <div className="space-y-2">
-        {busData?.data?.map((bus) => {
-          const applied = isApplied(bus.id);
+        {busData.data.map((bus) => {
+          const applied = myBusData?.data?.id === bus.id;
           const isFull = bus.applyCount >= bus.peopleLimit;
 
           return (
@@ -124,26 +171,9 @@ const BusSection = () => {
                   <button
                     onClick={() => handleApply(bus)}
                     disabled={isFull && !applied}
-                    className={`
-                      text-sm px-3 py-1 rounded
-                      ${
-                        applied
-                          ? "bg-blue-100 text-blue-700 cursor-default"
-                          : isFull
-                            ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                            : myBusData?.data
-                              ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                              : "bg-blue-500 text-white hover:bg-blue-600"
-                      }
-                    `}
+                    className={`text-sm px-3 py-1 rounded ${getButtonStyle(bus)}`}
                   >
-                    {applied
-                      ? "신청됨"
-                      : isFull
-                        ? "만석"
-                        : myBusData?.data
-                          ? "변경"
-                          : "신청"}
+                    {getButtonText(bus)}
                   </button>
                 </div>
               </div>
