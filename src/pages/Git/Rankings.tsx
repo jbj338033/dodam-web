@@ -162,9 +162,7 @@ const Rankings: React.FC<RankingsProps> = ({
                     @{user.githubId}
                   </span>
                 </div>
-                <p className="text-sm text-slate-500 truncate">
-                  {user.bio || "소개가 없습니다"}
-                </p>
+                <p className="text-sm text-slate-500 truncate">{user.bio}</p>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-lg font-bold text-violet-600">

@@ -241,7 +241,7 @@ const GitPage = () => {
                         </span>
                       </div>
                       <p className="text-sm text-slate-500 truncate">
-                        {rank.bio || "소개가 없습니다"}
+                        {rank.bio}
                       </p>
                     </div>
                     <div className="flex items-baseline gap-1">
