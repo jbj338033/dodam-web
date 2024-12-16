@@ -49,9 +49,32 @@ const MEAL_TYPES: { type: MealType; label: string; icon: JSX.Element }[] = [
   },
 ];
 
+const getCurrentMealType = (): MealType => {
+  const now = dayjs();
+  const hour = now.hour();
+  const minute = now.minute();
+  const timeInMinutes = hour * 60 + minute;
+
+  // 아침 시간: 7:40 ~ 8:30 (460 ~ 510분)
+  if (timeInMinutes >= 460 && timeInMinutes <= 510) return "breakfast";
+
+  // 점심 시간: 12:30 ~ 13:20 (750 ~ 800분)
+  if (timeInMinutes >= 750 && timeInMinutes <= 800) return "lunch";
+
+  // 저녁 시간: 18:20 ~ 19:10 (1100 ~ 1150분)
+  if (timeInMinutes >= 1100 && timeInMinutes <= 1150) return "dinner";
+
+  // 식사 시간 이외에는 다음 식사 시간을 표시
+  if (timeInMinutes < 460) return "breakfast";
+  if (timeInMinutes < 750) return "lunch";
+  if (timeInMinutes < 1100) return "dinner";
+  return "breakfast"; // 19:10 이후는 다음날 아침
+};
+
 const MealSection = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const queryClient = useQueryClient();
+  const currentMealType = getCurrentMealType();
 
   const fetchMealData = useCallback(async (date: dayjs.Dayjs) => {
     const { data } = await dodamAxios.get<ApiResponse<Meal>>(`meal`, {
@@ -158,15 +181,31 @@ const MealSection = () => {
       </div>
 
       <div className="space-y-3">
-        {MEAL_TYPES.map(({ type, label, icon }) => (
-          <div key={type} className="flex gap-3">
-            <div className="w-20 flex items-center gap-1.5 text-slate-600">
-              <span className="text-slate-400">{icon}</span>
-              <span className="text-sm">{label}</span>
+        {MEAL_TYPES.map(({ type, label, icon }) => {
+          const isCurrentMeal = isToday && type === currentMealType;
+          return (
+            <div
+              key={type}
+              className={`flex gap-3 p-2 rounded ${
+                isCurrentMeal ? "bg-blue-50" : ""
+              }`}
+            >
+              <div className="w-20 flex items-center gap-1.5 text-slate-600">
+                <span
+                  className={`${isCurrentMeal ? "text-blue-500" : "text-slate-400"}`}
+                >
+                  {icon}
+                </span>
+                <span
+                  className={`text-sm ${isCurrentMeal ? "text-blue-600 font-medium" : ""}`}
+                >
+                  {label}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">{renderMealContent(type)}</div>
             </div>
-            <div className="flex-1 min-w-0">{renderMealContent(type)}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
