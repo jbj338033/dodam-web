@@ -47,7 +47,7 @@ const MainContent = memo(({ children }: MainContentProps) => (
 
 MainContent.displayName = "MainContent";
 
-const MainPage = memo(() => {
+const Main = memo(() => {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50">
       <BannerSection />
@@ -74,6 +74,6 @@ const MainPage = memo(() => {
   );
 });
 
-MainPage.displayName = "MainPage";
+Main.displayName = "Main";
 
-export default MainPage;
+export default Main;

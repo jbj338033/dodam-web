@@ -266,7 +266,7 @@ const WeeklyView = memo(
 
 WeeklyView.displayName = "WeeklyView";
 
-const GitPage = memo(() => {
+const Git = memo(() => {
   const [activeTab, setActiveTab] = useState<Tab>("commit");
   const [page, setPage] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -397,6 +397,6 @@ const GitPage = memo(() => {
   );
 });
 
-GitPage.displayName = "GitPage";
+Git.displayName = "Git";
 
-export default GitPage;
+export default Git;

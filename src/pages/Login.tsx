@@ -18,7 +18,7 @@ interface ErrorResponse {
   code: string;
 }
 
-const LoginPage = () => {
+const Login = () => {
   const navigate = useNavigate();
   const { setAccessToken, setRefreshToken } = useTokenStore();
   const [showPassword, setShowPassword] = React.useState(false);
@@ -230,4 +230,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;

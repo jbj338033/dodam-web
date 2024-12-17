@@ -38,7 +38,7 @@ const MainContent = memo(({ children }: MainContentProps) => (
 
 MainContent.displayName = "MainContent";
 
-const SchedulePage = memo(() => {
+const Schedule = memo(() => {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50">
       <PageHeader
@@ -54,6 +54,6 @@ const SchedulePage = memo(() => {
   );
 });
 
-SchedulePage.displayName = "SchedulePage";
+Schedule.displayName = "Schedule";
 
-export default SchedulePage;
+export default Schedule;

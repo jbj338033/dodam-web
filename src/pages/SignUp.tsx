@@ -18,7 +18,7 @@ interface SignUpForm {
   number: number;
 }
 
-const SignUpPage = () => {
+const SignUp = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -337,4 +337,4 @@ const SignUpPage = () => {
   );
 };
 
-export default SignUpPage;
+export default SignUp;

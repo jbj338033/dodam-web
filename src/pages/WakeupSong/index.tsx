@@ -16,7 +16,7 @@ const TABS = [
   { id: "chart" as const, label: "멜론 차트" },
 ] as const;
 
-const WakeupSongPage = () => {
+const WakeupSong = () => {
   const [activeTab, setActiveTab] = useState<Tab>("today");
 
   return (
@@ -76,4 +76,4 @@ const WakeupSongPage = () => {
   );
 };
 
-export default WakeupSongPage;
+export default WakeupSong;

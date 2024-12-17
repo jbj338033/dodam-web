@@ -77,7 +77,7 @@ const MainContent = memo(
 
 MainContent.displayName = "MainContent";
 
-const NightStudyPage = memo(() => {
+const NightStudy = memo(() => {
   const [isApplying, setIsApplying] = useState(false);
 
   const handleStartApplying = useCallback(() => {
@@ -107,6 +107,6 @@ const NightStudyPage = memo(() => {
   );
 });
 
-NightStudyPage.displayName = "NightStudyPage";
+NightStudy.displayName = "NightStudy";
 
-export default NightStudyPage;
+export default NightStudy;
