@@ -16,6 +16,7 @@ function App() {
     window.location.pathname !== "/signup"
   ) {
     location.href = "/login";
+
     return null;
   }
 
