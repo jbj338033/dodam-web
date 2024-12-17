@@ -1,27 +1,114 @@
-import { useState } from "react";
+import React, { useState, memo, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { NightStudyRequest, PLACES } from "./types";
 import { FiX } from "react-icons/fi";
 import dayjs from "dayjs";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { dodamAxios } from "../../libs/axios";
+import { NightStudyRequest, PLACES } from "./types";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ApplicationFormSection = ({ isOpen, onClose }: Props) => {
+interface FormInputProps {
+  label: string;
+  type: "text" | "date";
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+const FormInput = memo(
+  ({ label, type, value, onChange, placeholder }: FormInputProps) => (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+      />
+    </div>
+  )
+);
+
+FormInput.displayName = "FormInput";
+
+interface FormSelectProps {
+  label: string;
+  value: string;
+  options: typeof PLACES;
+  onChange: (value: string) => void;
+}
+
+const FormSelect = memo(
+  ({ label, value, options, onChange }: FormSelectProps) => (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+);
+
+FormSelect.displayName = "FormSelect";
+
+interface FormHeaderProps {
+  title: string;
+  onClose: () => void;
+}
+
+const FormHeader = memo(({ title, onClose }: FormHeaderProps) => (
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="font-bold">{title}</h2>
+    <button
+      onClick={onClose}
+      type="button"
+      className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+      aria-label="닫기"
+    >
+      <FiX className="w-5 h-5" />
+    </button>
+  </div>
+));
+
+FormHeader.displayName = "FormHeader";
+
+const initialFormState: NightStudyRequest = {
+  content: "",
+  startAt: dayjs().format("YYYY-MM-DD"),
+  endAt: dayjs().add(2, "week").format("YYYY-MM-DD"),
+  doNeedPhone: false,
+  place: PLACES[0],
+  reasonForPhone: "",
+};
+
+const ApplicationFormSection = memo(({ isOpen, onClose }: Props) => {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<NightStudyRequest>({
-    content: "",
-    startAt: dayjs().format("YYYY-MM-DD"),
-    endAt: dayjs().add(2, "week").format("YYYY-MM-DD"),
-    doNeedPhone: false,
-    place: PLACES[0],
-    reasonForPhone: "",
-  });
+  const [form, setForm] = useState<NightStudyRequest>(initialFormState);
+
+  const handleInputChange = useCallback(
+    (field: keyof NightStudyRequest) => (value: string) => {
+      setForm((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
   const applyMutation = useMutation({
     mutationFn: async (data: NightStudyRequest) => {
@@ -44,81 +131,50 @@ const ApplicationFormSection = ({ isOpen, onClose }: Props) => {
     },
   });
 
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      applyMutation.mutate(form);
+    },
+    [applyMutation, form]
+  );
+
   if (!isOpen) return null;
 
   return (
-    <div className="bg-white border border-slate-200 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-bold">새로운 신청</h2>
-        <button
-          onClick={onClose}
-          className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
-        >
-          <FiX className="w-5 h-5" />
-        </button>
-      </div>
+    <section className="bg-white border border-slate-200 p-4">
+      <FormHeader title="새로운 신청" onClose={onClose} />
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          applyMutation.mutate(form);
-        }}
-        className="space-y-4"
-      >
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            신청 내용
-          </label>
-          <input
-            type="text"
-            value={form.content}
-            onChange={(e) => setForm({ ...form, content: e.target.value })}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-            placeholder="학습 내용을 입력하세요"
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FormInput
+          label="신청 내용"
+          type="text"
+          value={form.content}
+          onChange={handleInputChange("content")}
+          placeholder="학습 내용을 입력하세요"
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            label="시작일"
+            type="date"
+            value={form.startAt}
+            onChange={handleInputChange("startAt")}
+          />
+          <FormInput
+            label="종료일"
+            type="date"
+            value={form.endAt}
+            onChange={handleInputChange("endAt")}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              시작일
-            </label>
-            <input
-              type="date"
-              value={form.startAt}
-              onChange={(e) => setForm({ ...form, startAt: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              종료일
-            </label>
-            <input
-              type="date"
-              value={form.endAt}
-              onChange={(e) => setForm({ ...form, endAt: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            학습 장소
-          </label>
-          <select
-            value={form.place}
-            onChange={(e) => setForm({ ...form, place: e.target.value })}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-          >
-            {PLACES.map((place) => (
-              <option key={place} value={place}>
-                {place}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormSelect
+          label="학습 장소"
+          value={form.place}
+          options={PLACES}
+          onChange={handleInputChange("place")}
+        />
 
         <button
           type="submit"
@@ -128,8 +184,10 @@ const ApplicationFormSection = ({ isOpen, onClose }: Props) => {
           {applyMutation.isPending ? "신청중..." : "신청하기"}
         </button>
       </form>
-    </div>
+    </section>
   );
-};
+});
+
+ApplicationFormSection.displayName = "ApplicationFormSection";
 
 export default ApplicationFormSection;
