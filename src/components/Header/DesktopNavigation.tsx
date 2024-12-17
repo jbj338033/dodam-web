@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { NavLink } from "react-router-dom";
-import { NAV_ITEMS, NavItem } from "./types";
+import { NavItem } from "./types";
+import { NAV_ITEMS } from "./constants";
 
 interface NavLinkItemProps {
   item: NavItem;
