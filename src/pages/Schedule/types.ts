@@ -13,7 +13,9 @@ export interface ScheduleResponse {
   data: Schedule[];
 }
 
-export const GRADE_COLORS = {
+export const GRADE_COLORS: {
+  [key: string]: { bg: string; text: string; dot: string };
+} = {
   GRADE_ALL: {
     bg: "bg-neutral-100",
     text: "text-neutral-900",

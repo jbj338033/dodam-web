@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useTokenStore } from "../../stores/token";
-import { ScheduleResponse, GRADE_COLORS, Schedule } from "./types";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
+import { useTokenStore } from "../../stores/token";
+import { ScheduleResponse, GRADE_COLORS, Schedule } from "./types";
 import GradeLegend from "./GradeLegend";
 import { dodamAxios } from "../../libs/axios";
 
@@ -17,13 +17,149 @@ interface ProcessedSchedule extends Schedule {
   isEnd: boolean;
 }
 
-const CalendarSection = () => {
-  const { accessToken } = useTokenStore();
-  const [currentDate, setCurrentDate] = useState(dayjs());
-  const startAt = currentDate.startOf("month").format("YYYY-MM-DD");
-  const endAt = currentDate.endOf("month").format("YYYY-MM-DD");
+interface HeaderProps {
+  currentDate: dayjs.Dayjs;
+  onPrevMonth: () => void;
+  onNextMonth: () => void;
+  onToday: () => void;
+}
 
-  const { data: scheduleData } = useQuery({
+const Header = memo(
+  ({ currentDate, onPrevMonth, onNextMonth, onToday }: HeaderProps) => (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-4">
+        <h2 className="font-bold text-slate-900">
+          {currentDate.format("YYYY년 M월")}
+        </h2>
+        <div className="flex gap-2">
+          <button
+            onClick={onPrevMonth}
+            className="p-1.5 rounded hover:bg-slate-100 text-slate-600"
+            aria-label="이전 달"
+          >
+            <FiChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onToday}
+            className="px-2 py-1 rounded hover:bg-slate-100 text-slate-600 text-sm"
+          >
+            오늘
+          </button>
+          <button
+            onClick={onNextMonth}
+            className="p-1.5 rounded hover:bg-slate-100 text-slate-600"
+            aria-label="다음 달"
+          >
+            <FiChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      <GradeLegend />
+    </div>
+  )
+);
+
+Header.displayName = "Header";
+
+interface WeekHeaderProps {
+  days: string[];
+}
+
+const WeekHeader = memo(({ days }: WeekHeaderProps) => (
+  <div className="grid grid-cols-7 border-b border-slate-200">
+    {days.map((day) => (
+      <div
+        key={day}
+        className="py-3 text-sm font-medium text-slate-600 text-center"
+      >
+        {day}
+      </div>
+    ))}
+  </div>
+));
+
+WeekHeader.displayName = "WeekHeader";
+
+interface CalendarDayProps {
+  day: dayjs.Dayjs;
+  isToday: boolean;
+  isCurrentMonth: boolean;
+}
+
+const CalendarDay = memo(
+  ({ day, isToday, isCurrentMonth }: CalendarDayProps) => {
+    const isSunday = day.day() === 0;
+    const isSaturday = day.day() === 6;
+
+    return (
+      <div
+        className={`min-h-[140px] p-2 ${isCurrentMonth ? "bg-white" : "bg-slate-50"}`}
+      >
+        <div
+          className={`text-sm mb-1 flex items-center justify-center w-6 h-6 rounded-full ${
+            isToday
+              ? "bg-blue-500 text-white"
+              : isCurrentMonth
+                ? isSunday
+                  ? "text-red-500"
+                  : isSaturday
+                    ? "text-blue-500"
+                    : "text-slate-900"
+                : isSunday
+                  ? "text-red-300"
+                  : isSaturday
+                    ? "text-blue-300"
+                    : "text-slate-400"
+          }`}
+        >
+          {day.format("D")}
+        </div>
+      </div>
+    );
+  }
+);
+
+CalendarDay.displayName = "CalendarDay";
+
+interface ScheduleBarProps {
+  schedule: ProcessedSchedule;
+  targetGrades: string[];
+  index: number;
+}
+
+const ScheduleBar = memo(
+  ({ schedule, targetGrades, index }: ScheduleBarProps) => {
+    const { bg, text } =
+      GRADE_COLORS[
+        targetGrades.includes("GRADE_ALL")
+          ? "GRADE_ALL"
+          : targetGrades.find((g) => g.startsWith("GRADE_")) || "GRADE_ALL"
+      ];
+
+    const startPercent = (schedule.weekStartPos / 7) * 100;
+    const width = ((schedule.weekEndPos - schedule.weekStartPos + 1) / 7) * 100;
+
+    return (
+      <div
+        className={`absolute h-6 ${bg} ${text} text-xs flex items-center px-2 rounded`}
+        style={{
+          left: `${startPercent}%`,
+          width: `${width}%`,
+          marginTop: `${index * 28}px`,
+        }}
+      >
+        <div className="truncate">{schedule.name}</div>
+      </div>
+    );
+  }
+);
+
+ScheduleBar.displayName = "ScheduleBar";
+
+const useSchedules = (startAt: string, endAt: string) => {
+  const { accessToken } = useTokenStore();
+
+  return useQuery({
     queryKey: ["schedules", startAt, endAt],
     queryFn: async () => {
       const { data } = await dodamAxios.get<ScheduleResponse>(
@@ -36,6 +172,14 @@ const CalendarSection = () => {
     },
     enabled: !!accessToken,
   });
+};
+
+const CalendarSection = memo(() => {
+  const [currentDate, setCurrentDate] = useState(dayjs());
+  const startAt = currentDate.startOf("month").format("YYYY-MM-DD");
+  const endAt = currentDate.endOf("month").format("YYYY-MM-DD");
+
+  const { data: scheduleData } = useSchedules(startAt, endAt);
 
   const weeks = useMemo(() => {
     const start = currentDate.startOf("month").startOf("week");
@@ -54,156 +198,90 @@ const CalendarSection = () => {
     return days;
   }, [currentDate]);
 
-  const getGradeColor = (grades: string[]) => {
-    if (grades.includes("GRADE_ALL")) return GRADE_COLORS.GRADE_ALL;
-    if (grades.includes("GRADE_1")) return GRADE_COLORS.GRADE_1;
-    if (grades.includes("GRADE_2")) return GRADE_COLORS.GRADE_2;
-    if (grades.includes("GRADE_3")) return GRADE_COLORS.GRADE_3;
-    return GRADE_COLORS.GRADE_ALL;
-  };
+  const handlePrevMonth = useCallback(
+    () => setCurrentDate((prev) => prev.subtract(1, "month")),
+    []
+  );
+  const handleNextMonth = useCallback(
+    () => setCurrentDate((prev) => prev.add(1, "month")),
+    []
+  );
+  const handleToday = useCallback(() => setCurrentDate(dayjs()), []);
 
-  const processSchedules = (week: dayjs.Dayjs[]): ProcessedSchedule[] => {
-    if (!scheduleData) return [];
+  const processSchedules = useCallback(
+    (week: dayjs.Dayjs[]): ProcessedSchedule[] => {
+      if (!scheduleData) return [];
 
-    const processedSchedules = scheduleData
-      .map((schedule) => {
-        const startDate = dayjs(schedule.date[0]);
-        const endDate = dayjs(schedule.date[1]);
-        const weekStart = week[0];
-        const weekEnd = week[6];
+      return scheduleData
+        .map((schedule) => {
+          const startDate = dayjs(schedule.date[0]);
+          const endDate = dayjs(schedule.date[1]);
+          const weekStart = week[0];
+          const weekEnd = week[6];
 
-        if (!startDate.isAfter(weekEnd) && !endDate.isBefore(weekStart)) {
-          const weekStartPos = Math.max(0, startDate.diff(weekStart, "day"));
-          const weekEndPos = Math.min(6, endDate.diff(weekStart, "day"));
+          if (!startDate.isAfter(weekEnd) && !endDate.isBefore(weekStart)) {
+            const weekStartPos = Math.max(0, startDate.diff(weekStart, "day"));
+            const weekEndPos = Math.min(6, endDate.diff(weekStart, "day"));
 
-          return {
-            ...schedule,
-            weekStartPos,
-            weekEndPos,
-            isStart: weekStartPos === startDate.diff(weekStart, "day"),
-            isEnd: weekEndPos === endDate.diff(weekStart, "day"),
-          };
-        }
-        return null;
-      })
-      .filter((schedule): schedule is ProcessedSchedule => schedule !== null);
-
-    return processedSchedules;
-  };
+            return {
+              ...schedule,
+              weekStartPos,
+              weekEndPos,
+              isStart: weekStartPos === startDate.diff(weekStart, "day"),
+              isEnd: weekEndPos === endDate.diff(weekStart, "day"),
+            };
+          }
+          return null;
+        })
+        .filter((schedule): schedule is ProcessedSchedule => schedule !== null);
+    },
+    [scheduleData]
+  );
 
   return (
-    <div className="bg-white border border-slate-200 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <h2 className="font-bold text-slate-900">
-            {currentDate.format("YYYY년 M월")}
-          </h2>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentDate(currentDate.subtract(1, "month"))}
-              className="p-1.5 rounded hover:bg-slate-100 text-slate-600"
-            >
-              <FiChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setCurrentDate(dayjs())}
-              className="px-2 py-1 rounded hover:bg-slate-100 text-slate-600 text-sm"
-            >
-              오늘
-            </button>
-            <button
-              onClick={() => setCurrentDate(currentDate.add(1, "month"))}
-              className="p-1.5 rounded hover:bg-slate-100 text-slate-600"
-            >
-              <FiChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        <GradeLegend />
-      </div>
+    <section className="bg-white border border-slate-200 p-4">
+      <Header
+        currentDate={currentDate}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
+        onToday={handleToday}
+      />
 
       <div className="border border-slate-200 rounded overflow-hidden">
-        <div className="grid grid-cols-7 border-b border-slate-200">
-          {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
-            <div
-              key={day}
-              className="py-3 text-sm font-medium text-slate-600 text-center"
-            >
-              {day}
-            </div>
-          ))}
-        </div>
+        <WeekHeader days={["일", "월", "화", "수", "목", "금", "토"]} />
 
         <div className="divide-y divide-slate-200">
           {weeks.map((week, weekIndex) => (
             <div key={weekIndex} className="relative">
               <div className="absolute top-8 left-0 right-0 z-10">
-                {processSchedules(week).map((schedule, idx) => {
-                  const { bg, text } = getGradeColor(schedule.targetGrades);
-                  const startPercent = (schedule.weekStartPos / 7) * 100;
-                  const width =
-                    ((schedule.weekEndPos - schedule.weekStartPos + 1) / 7) *
-                    100;
-
-                  return (
-                    <div
-                      key={`${schedule.id}-${weekIndex}`}
-                      className={`absolute h-6 ${bg} ${text} text-xs flex items-center px-2 rounded`}
-                      style={{
-                        left: `${startPercent}%`,
-                        width: `${width}%`,
-                        marginTop: `${idx * 28}px`,
-                      }}
-                    >
-                      <div className="truncate">{schedule.name}</div>
-                    </div>
-                  );
-                })}
+                {processSchedules(week).map((schedule, idx) => (
+                  <ScheduleBar
+                    key={`${schedule.id}-${weekIndex}`}
+                    schedule={schedule}
+                    targetGrades={schedule.targetGrades}
+                    index={idx}
+                  />
+                ))}
               </div>
 
               <div className="grid grid-cols-7 divide-x divide-slate-200">
-                {week.map((day) => {
-                  const isToday = day.isSame(dayjs(), "day");
-                  const isCurrentMonth = day.isSame(currentDate, "month");
-                  const isSunday = day.day() === 0;
-                  const isSaturday = day.day() === 6;
-
-                  return (
-                    <div
-                      key={day.format("YYYY-MM-DD")}
-                      className={`min-h-[140px] p-2 ${
-                        isCurrentMonth ? "bg-white" : "bg-slate-50"
-                      }`}
-                    >
-                      <div
-                        className={`text-sm mb-1 flex items-center justify-center w-6 h-6 rounded-full ${
-                          isToday
-                            ? "bg-blue-500 text-white"
-                            : isCurrentMonth
-                              ? isSunday
-                                ? "text-red-500"
-                                : isSaturday
-                                  ? "text-blue-500"
-                                  : "text-slate-900"
-                              : isSunday
-                                ? "text-red-300"
-                                : isSaturday
-                                  ? "text-blue-300"
-                                  : "text-slate-400"
-                        }`}
-                      >
-                        {day.format("D")}
-                      </div>
-                    </div>
-                  );
-                })}
+                {week.map((day) => (
+                  <CalendarDay
+                    key={day.format("YYYY-MM-DD")}
+                    day={day}
+                    isToday={day.isSame(dayjs(), "day")}
+                    isCurrentMonth={day.isSame(currentDate, "month")}
+                  />
+                ))}
               </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
-};
+});
+
+CalendarSection.displayName = "CalendarSection";
 
 export default CalendarSection;
