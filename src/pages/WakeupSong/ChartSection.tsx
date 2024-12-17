@@ -21,6 +21,7 @@ const SongItem = memo(({ song, onRequest, isLoading }: SongItemProps) => (
       src={song.thumbnail}
       alt=""
       className="w-12 h-12 rounded object-cover"
+      loading="lazy"
     />
     <div className="flex-1 min-w-0">
       <p className="font-medium truncate">{song.name}</p>
