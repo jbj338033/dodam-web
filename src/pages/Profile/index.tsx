@@ -1,27 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FiUser } from "react-icons/fi";
+import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useTokenStore } from "../../stores/token";
 import { UserProfile, UpdateProfileDto } from "./types";
 import ProfileCard from "./ProfileCard";
 import ProfileForm from "./ProfileForm";
-import { Toaster } from "react-hot-toast";
-import toast from "react-hot-toast";
 import { dodamAxios } from "../../libs/axios";
 
-const Profile = () => {
-  const { accessToken } = useTokenStore();
-  const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState<UpdateProfileDto>({
-    email: "",
-    phone: "",
-    grade: 1,
-    room: 1,
-    number: 1,
-  });
+interface PageHeaderProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
 
-  const { data: profile } = useQuery<UserProfile>({
+const PageHeader = memo(({ title, description, icon }: PageHeaderProps) => (
+  <div className="border-b border-slate-200 bg-white">
+    <div className="container mx-auto px-4">
+      <div className="max-w-7xl mx-auto py-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            {icon}
+            {title}
+          </h1>
+          <p className="text-slate-500 mt-1">{description}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
+PageHeader.displayName = "PageHeader";
+
+const useProfile = () => {
+  const { accessToken } = useTokenStore();
+
+  return useQuery<UserProfile>({
     queryKey: ["profile"],
     queryFn: async () => {
       const { data } = await dodamAxios.get("/member/my");
@@ -29,14 +44,17 @@ const Profile = () => {
     },
     enabled: !!accessToken,
   });
+};
 
-  const updateProfileMutation = useMutation({
+const useProfileMutations = () => {
+  const queryClient = useQueryClient();
+
+  const updateProfile = useMutation({
     mutationFn: async (updateData: UpdateProfileDto) => {
       await dodamAxios.patch("/member/info", updateData);
     },
     onSuccess: () => {
       toast.success("프로필이 수정되었습니다");
-      setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: () => {
@@ -44,28 +62,38 @@ const Profile = () => {
     },
   });
 
-  const uploadImageMutation = useMutation({
+  const uploadImage = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
 
       const { data } = await dodamAxios.post("/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       return data.data;
-    },
-    onSuccess: (imageUrl) => {
-      updateProfileMutation.mutate({
-        ...editForm,
-        profileImage: imageUrl,
-      });
     },
     onError: () => {
       toast.error("이미지 업로드에 실패했습니다");
     },
   });
+
+  return { updateProfile, uploadImage };
+};
+
+const initialFormState: UpdateProfileDto = {
+  email: "",
+  phone: "",
+  grade: 1,
+  room: 1,
+  number: 1,
+};
+
+const Profile = memo(() => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<UpdateProfileDto>(initialFormState);
+
+  const { data: profile } = useProfile();
+  const { updateProfile, uploadImage } = useProfileMutations();
 
   useEffect(() => {
     if (profile) {
@@ -79,41 +107,49 @@ const Profile = () => {
     }
   }, [profile]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfileMutation.mutate(editForm);
-  };
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      await updateProfile.mutateAsync(editForm);
+      setIsEditing(false);
+    },
+    [updateProfile, editForm]
+  );
+
+  const handleImageUpload = useCallback(
+    async (file: File) => {
+      const imageUrl = await uploadImage.mutateAsync(file);
+      updateProfile.mutate({
+        ...editForm,
+        profileImage: imageUrl,
+      });
+    },
+    [uploadImage, updateProfile, editForm]
+  );
+
+  const handleEdit = useCallback(() => setIsEditing(true), []);
+  const handleCancel = useCallback(() => setIsEditing(false), []);
 
   if (!profile) return null;
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50">
-      <div className="border-b border-slate-200 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto py-8">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <FiUser className="text-blue-500" />
-                프로필
-              </h1>
-              <p className="text-slate-500 mt-1">
-                도담도담에서 사용하는 내 프로필을 관리할 수 있습니다
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="프로필"
+        description="도담도담에서 사용하는 내 프로필을 관리할 수 있습니다"
+        icon={<FiUser className="text-blue-500" />}
+      />
 
-      <div className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div>
               <ProfileCard
                 profile={profile}
                 isEditing={isEditing}
-                onEdit={() => setIsEditing(true)}
-                onCancel={() => setIsEditing(false)}
-                onImageUpload={(file) => uploadImageMutation.mutate(file)}
+                onEdit={handleEdit}
+                onCancel={handleCancel}
+                onImageUpload={handleImageUpload}
               />
             </div>
             <div className="lg:col-span-2">
@@ -123,12 +159,13 @@ const Profile = () => {
                 editForm={editForm}
                 onSubmit={handleSubmit}
                 onChange={setEditForm}
-                isLoading={updateProfileMutation.isPending}
+                isLoading={updateProfile.isPending}
               />
             </div>
           </div>
         </div>
-      </div>
+      </main>
+
       <Toaster
         position="top-right"
         toastOptions={{
@@ -144,6 +181,8 @@ const Profile = () => {
       />
     </div>
   );
-};
+});
+
+Profile.displayName = "Profile";
 
 export default Profile;
