@@ -1,4 +1,6 @@
-const LogoSection = () => {
+import { memo } from "react";
+
+const LogoSection = memo(() => {
   return (
     <div className="flex items-center gap-2">
       <img src="/b1nd.svg" alt="B1ND Logo" className="h-6" />
@@ -8,6 +10,8 @@ const LogoSection = () => {
       </p>
     </div>
   );
-};
+});
+
+LogoSection.displayName = "LogoSection";
 
 export default LogoSection;

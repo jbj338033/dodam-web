@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { FaGooglePlay, FaApple } from "react-icons/fa";
 import { IconType } from "react-icons";
 
