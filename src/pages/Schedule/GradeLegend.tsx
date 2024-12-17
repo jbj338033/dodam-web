@@ -15,10 +15,11 @@ const LEGEND_ITEMS: LegendItem[] = [
   { grade: "2학년", color: GRADE_COLORS.GRADE_2.dot },
   { grade: "3학년", color: GRADE_COLORS.GRADE_3.dot },
   { grade: "전교생", color: GRADE_COLORS.GRADE_ALL.dot },
+  { grade: "기타", color: GRADE_COLORS.GRADE_ETC.dot },
 ];
 
 const LegendDot = memo(({ item }: LegendItemProps) => (
-  <div className="flex items-center text-sm">
+  <div className="flex items-center text-sm text-slate-600">
     <div
       className={`w-3 h-3 rounded-full ${item.color} mr-1`}
       role="presentation"
