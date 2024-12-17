@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import {
@@ -11,67 +11,164 @@ import { PiBowlFood, PiCoffee, PiHamburger } from "react-icons/pi";
 import { ApiResponse } from "../../types/api";
 import { dodamAxios } from "../../libs/axios";
 
-type MealType = "breakfast" | "lunch" | "dinner";
-
-type MealDetail = {
+interface MealDetail {
   name: string;
   allergies: number[];
-};
+}
 
-type MealTime = {
+interface MealTime {
   details: MealDetail[];
   calorie: number;
-};
+}
 
-type Meal = {
+interface Meal {
   exists: boolean;
   date: string;
   breakfast: MealTime;
   lunch: MealTime;
   dinner: MealTime;
-};
+}
 
-const MEAL_TYPES: { type: MealType; label: string; icon: JSX.Element }[] = [
-  {
-    type: "breakfast",
-    label: "아침",
-    icon: <PiCoffee className="w-5 h-5" />,
-  },
-  {
-    type: "lunch",
-    label: "점심",
-    icon: <PiHamburger className="w-5 h-5" />,
-  },
-  {
-    type: "dinner",
-    label: "저녁",
-    icon: <PiBowlFood className="w-5 h-5" />,
-  },
+type MealType = "breakfast" | "lunch" | "dinner";
+
+interface MealTypeConfig {
+  type: MealType;
+  label: string;
+  icon: JSX.Element;
+}
+
+const MEAL_TYPES: MealTypeConfig[] = [
+  { type: "breakfast", label: "아침", icon: <PiCoffee className="w-5 h-5" /> },
+  { type: "lunch", label: "점심", icon: <PiHamburger className="w-5 h-5" /> },
+  { type: "dinner", label: "저녁", icon: <PiBowlFood className="w-5 h-5" /> },
 ];
 
 const getCurrentMealType = (): MealType => {
   const now = dayjs();
-  const hour = now.hour();
-  const minute = now.minute();
-  const timeInMinutes = hour * 60 + minute;
+  const timeInMinutes = now.hour() * 60 + now.minute();
 
-  // 아침 시간: 7:40 ~ 8:30 (460 ~ 510분)
   if (timeInMinutes >= 460 && timeInMinutes <= 510) return "breakfast";
-
-  // 점심 시간: 12:30 ~ 13:20 (750 ~ 800분)
   if (timeInMinutes >= 750 && timeInMinutes <= 800) return "lunch";
-
-  // 저녁 시간: 18:20 ~ 19:10 (1100 ~ 1150분)
   if (timeInMinutes >= 1100 && timeInMinutes <= 1150) return "dinner";
-
-  // 식사 시간 이외에는 다음 식사 시간을 표시
   if (timeInMinutes < 460) return "breakfast";
   if (timeInMinutes < 750) return "lunch";
   if (timeInMinutes < 1100) return "dinner";
-  return "breakfast"; // 19:10 이후는 다음날 아침
+  return "breakfast";
 };
 
-const MealSection = () => {
+interface DateNavigatorProps {
+  selectedDate: dayjs.Dayjs;
+  onDateChange: (direction: "prev" | "next") => void;
+}
+
+const DateNavigator = memo(
+  ({ selectedDate, onDateChange }: DateNavigatorProps) => {
+    const isToday =
+      selectedDate.format("YYYY-MM-DD") === dayjs().format("YYYY-MM-DD");
+
+    return (
+      <div className="flex items-center gap-1 text-sm">
+        <button
+          onClick={() => onDateChange("prev")}
+          className="p-1.5 hover:bg-slate-50 rounded"
+          aria-label="이전 날짜"
+        >
+          <FiChevronLeft className="w-4 h-4" />
+        </button>
+        <span
+          className={`px-2 py-1 rounded ${isToday ? "bg-blue-50 text-blue-600" : ""}`}
+        >
+          {selectedDate.format("MM.DD")}
+        </span>
+        <button
+          onClick={() => onDateChange("next")}
+          className="p-1.5 hover:bg-slate-50 rounded"
+          aria-label="다음 날짜"
+        >
+          <FiChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+);
+
+DateNavigator.displayName = "DateNavigator";
+
+interface MealContentProps {
+  mealData?: MealTime;
+  isLoading: boolean;
+}
+
+const MealContent = memo(({ mealData, isLoading }: MealContentProps) => {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-12">
+        <FiLoader className="w-4 h-4 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (!mealData?.details?.length) {
+    return (
+      <div className="text-slate-400 text-sm h-12 flex items-center">
+        식사 정보가 없습니다
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <div className="text-sm leading-relaxed">
+        {mealData.details.map((item, index) => (
+          <span key={index}>
+            {item.name}
+            {index < mealData.details.length - 1 && ", "}
+          </span>
+        ))}
+      </div>
+      <div className="text-xs text-slate-500">
+        {mealData.calorie.toFixed(1)}kcal
+      </div>
+    </div>
+  );
+});
+
+MealContent.displayName = "MealContent";
+
+interface MealItemProps {
+  type: MealTypeConfig;
+  mealData?: MealTime;
+  isCurrentMeal: boolean;
+  isLoading: boolean;
+}
+
+const MealItem = memo(
+  ({ type, mealData, isCurrentMeal, isLoading }: MealItemProps) => (
+    <div
+      className={`flex gap-3 p-2 rounded ${isCurrentMeal ? "bg-blue-50" : ""}`}
+    >
+      <div className="w-20 flex items-center gap-1.5 text-slate-600">
+        <span
+          className={`${isCurrentMeal ? "text-blue-500" : "text-slate-400"}`}
+        >
+          {type.icon}
+        </span>
+        <span
+          className={`text-sm ${isCurrentMeal ? "text-blue-600 font-medium" : ""}`}
+        >
+          {type.label}
+        </span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <MealContent mealData={mealData} isLoading={isLoading} />
+      </div>
+    </div>
+  )
+);
+
+MealItem.displayName = "MealItem";
+
+const MealSection = memo(() => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const queryClient = useQueryClient();
   const currentMealType = getCurrentMealType();
@@ -107,108 +204,43 @@ const MealSection = () => {
     });
   }, [selectedDate, queryClient, fetchMealData]);
 
-  const renderMealContent = (mealType: MealType) => {
-    const mealData = currentMealData?.data?.[mealType];
-
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center h-12">
-          <FiLoader className="w-4 h-4 animate-spin text-slate-400" />
-        </div>
-      );
-    }
-
-    if (!mealData?.details?.length) {
-      return (
-        <div className="text-slate-400 text-sm h-12 flex items-center">
-          식사 정보가 없습니다
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-1">
-        <div className="text-sm leading-relaxed">
-          {mealData.details.map((item, index) => (
-            <span key={index}>
-              {item.name}
-              {index < mealData.details.length - 1 && ", "}
-            </span>
-          ))}
-        </div>
-        <div className="text-xs text-slate-500">
-          {mealData.calorie.toFixed(1)}kcal
-        </div>
-      </div>
-    );
-  };
-
-  const handleDateChange = (direction: "prev" | "next") => {
+  const handleDateChange = useCallback((direction: "prev" | "next") => {
     setSelectedDate((prev) =>
       direction === "prev" ? prev.subtract(1, "day") : prev.add(1, "day")
     );
-  };
+  }, []);
 
   const isToday =
     selectedDate.format("YYYY-MM-DD") === dayjs().format("YYYY-MM-DD");
 
   return (
-    <div className="bg-white border border-slate-200 p-4">
+    <section className="bg-white border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-bold flex items-center gap-2">
           <FiCalendar className="text-blue-500" />
           식단
         </h2>
-        <div className="flex items-center gap-1 text-sm">
-          <button
-            onClick={() => handleDateChange("prev")}
-            className="p-1.5 hover:bg-slate-50 rounded"
-          >
-            <FiChevronLeft className="w-4 h-4" />
-          </button>
-          <span
-            className={`px-2 py-1 rounded ${isToday ? "bg-blue-50 text-blue-600" : ""}`}
-          >
-            {selectedDate.format("MM.DD")}
-          </span>
-          <button
-            onClick={() => handleDateChange("next")}
-            className="p-1.5 hover:bg-slate-50 rounded"
-          >
-            <FiChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        <DateNavigator
+          selectedDate={selectedDate}
+          onDateChange={handleDateChange}
+        />
       </div>
 
       <div className="space-y-3">
-        {MEAL_TYPES.map(({ type, label, icon }) => {
-          const isCurrentMeal = isToday && type === currentMealType;
-          return (
-            <div
-              key={type}
-              className={`flex gap-3 p-2 rounded ${
-                isCurrentMeal ? "bg-blue-50" : ""
-              }`}
-            >
-              <div className="w-20 flex items-center gap-1.5 text-slate-600">
-                <span
-                  className={`${isCurrentMeal ? "text-blue-500" : "text-slate-400"}`}
-                >
-                  {icon}
-                </span>
-                <span
-                  className={`text-sm ${isCurrentMeal ? "text-blue-600 font-medium" : ""}`}
-                >
-                  {label}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">{renderMealContent(type)}</div>
-            </div>
-          );
-        })}
+        {MEAL_TYPES.map((type) => (
+          <MealItem
+            key={type.type}
+            type={type}
+            mealData={currentMealData?.data?.[type.type]}
+            isCurrentMeal={isToday && type.type === currentMealType}
+            isLoading={isLoading}
+          />
+        ))}
       </div>
-    </div>
+    </section>
   );
-};
+});
+
+MealSection.displayName = "MealSection";
 
 export default MealSection;
