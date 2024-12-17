@@ -1,15 +1,72 @@
+import React, { useState, memo, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FiX } from "react-icons/fi";
-import { RegisterData } from "./types";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { RegisterData } from "./types";
 import { dauthAxios } from "../../libs/axios";
 
 interface Props {
   onClose: () => void;
 }
 
-const RegistrationModal = ({ onClose }: Props) => {
+interface InputFieldProps {
+  type: "text" | "url";
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  required?: boolean;
+}
+
+const InputField = memo(
+  ({ type, placeholder, value, onChange, required }: InputFieldProps) => (
+    <input
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+      required={required}
+    />
+  )
+);
+
+InputField.displayName = "InputField";
+
+interface SelectFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+}
+
+const SelectField = memo(({ value, onChange, options }: SelectFieldProps) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+  >
+    {options.map((option) => (
+      <option key={option.value} value={option.value}>
+        {option.label}
+      </option>
+    ))}
+  </select>
+));
+
+SelectField.displayName = "SelectField";
+
+const FRONTEND_OPTIONS = [
+  { value: "1", label: "React" },
+  { value: "2", label: "Vue" },
+  { value: "3", label: "Angular" },
+];
+
+const BACKEND_OPTIONS = [
+  { value: "1", label: "Spring" },
+  { value: "2", label: "Node.js" },
+  { value: "3", label: "Django" },
+];
+
+const RegistrationModal = memo(({ onClose }: Props) => {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<RegisterData>({
     clientName: "",
@@ -33,78 +90,75 @@ const RegistrationModal = ({ onClose }: Props) => {
     },
   });
 
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      registerMutation.mutate(formData);
+    },
+    [formData, registerMutation]
+  );
+
+  const handleInputChange = useCallback(
+    (field: keyof RegisterData) => (value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
       <div className="bg-white rounded-lg p-4 w-full max-w-md">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold">서비스 등록</h3>
+          <h3 id="modal-title" className="font-bold">
+            서비스 등록
+          </h3>
           <button
             onClick={onClose}
+            type="button"
             className="p-1.5 hover:bg-slate-100 rounded-full"
+            aria-label="닫기"
           >
             <FiX className="w-4 h-4" />
           </button>
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            registerMutation.mutate(formData);
-          }}
-          className="space-y-4"
-        >
-          <input
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <InputField
             type="text"
             placeholder="서비스 이름"
             value={formData.clientName}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, clientName: e.target.value }))
-            }
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+            onChange={handleInputChange("clientName")}
             required
           />
-          <input
+          <InputField
             type="url"
             placeholder="서비스 URL"
             value={formData.clientUrl}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, clientUrl: e.target.value }))
-            }
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+            onChange={handleInputChange("clientUrl")}
             required
           />
-          <input
+          <InputField
             type="url"
             placeholder="리다이렉트 URL"
             value={formData.redirectUrl}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, redirectUrl: e.target.value }))
-            }
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+            onChange={handleInputChange("redirectUrl")}
             required
           />
           <div className="grid grid-cols-2 gap-3">
-            <select
+            <SelectField
               value={formData.frontEnd}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, frontEnd: e.target.value }))
-              }
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-            >
-              <option value="1">React</option>
-              <option value="2">Vue</option>
-              <option value="3">Angular</option>
-            </select>
-            <select
+              onChange={handleInputChange("frontEnd")}
+              options={FRONTEND_OPTIONS}
+            />
+            <SelectField
               value={formData.backEnd}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, backEnd: e.target.value }))
-              }
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
-            >
-              <option value="1">Spring</option>
-              <option value="2">Node.js</option>
-              <option value="3">Django</option>
-            </select>
+              onChange={handleInputChange("backEnd")}
+              options={BACKEND_OPTIONS}
+            />
           </div>
           <button
             type="submit"
@@ -117,6 +171,8 @@ const RegistrationModal = ({ onClose }: Props) => {
       </div>
     </div>
   );
-};
+});
+
+RegistrationModal.displayName = "RegistrationModal";
 
 export default RegistrationModal;
