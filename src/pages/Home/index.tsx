@@ -5,7 +5,7 @@ import "dayjs/locale/ko";
 
 import MealSection from "./MealSection";
 import BannerSection from "./BannerSection";
-import OutgoingSection from "./OutgoingSection";
+import OutgoingSection from "./LeaveSection";
 import ScheduleSection from "./ScheduleSection";
 import ProfileSection from "./ProfileSection";
 import WakeupSongSection from "./WakeupSongSection";
